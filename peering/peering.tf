@@ -13,7 +13,7 @@ resource "azurerm_virtual_network_peering" "first" {
   allow_gateway_transit        = var.peering.config.first.allow_gateway_transit
   allow_virtual_network_access = var.peering.config.first.allow_virtual_network_access
 
-  provider = azurem.first
+  provider = azurerm.first
 }
 
 resource "azurerm_virtual_network_peering" "second" {
@@ -28,5 +28,5 @@ resource "azurerm_virtual_network_peering" "second" {
   allow_gateway_transit        = var.peering.config.second.allow_gateway_transit
   allow_virtual_network_access = var.peering.config.second.allow_virtual_network_access
 
-  provider = azurem.second
+  provider = azurerm.second
 }
