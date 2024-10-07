@@ -34,7 +34,7 @@ data "azurerm_resource_group" "snapshot_rg" {
 
   name = each.value.resource_group_name
 }
- 
+
 resource "azurerm_role_assignment" "disk_reader" {
   for_each = { for k, item in var.backup_workloads : k => item if item.type == "disk" }
 

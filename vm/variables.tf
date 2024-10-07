@@ -87,7 +87,7 @@ variable "loadbalancing" {
       backend_address_pool_id      = optional(string, null)
     }), {})
   })
-  default = { }
+  default  = {}
   nullable = false
 }
 

@@ -1,5 +1,5 @@
 variable "location" {
-  type    = string
+  type = string
 }
 
 variable "tags" {
@@ -127,7 +127,7 @@ variable "public_access" {
       bypass     = optional(list(string), [])
       ip_rules   = optional(list(string), [])
       subnet_ids = optional(list(string), [])
-    }), {
+      }), {
       bypass     = []
       ip_rules   = []
       subnet_ids = []
@@ -157,7 +157,7 @@ variable "private_endpoints" {
     }), null)
     tags                                    = optional(map(string), null)
     subnet_resource_id                      = string
-    subresource_names = list(string)
+    subresource_names                       = list(string)
     private_dns_zone_group_name             = optional(string, "default")
     private_dns_zone_resource_ids           = optional(set(string), [])
     application_security_group_associations = optional(map(string), {})
