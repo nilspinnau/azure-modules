@@ -4,7 +4,7 @@
 resource "azurerm_virtual_network_peering" "first" {
   count = var.peering.enabled == true ? 1 : 0
 
-  name                      = "peer-${uuidv5("url", var.peering.config.first.virtual_network_id)}-to-${uuidv5("url", var.peering.config.second.virtual_network_id)}"
+  name                      = "peering-${uuidv5("url", var.peering.config.second.virtual_network_id)}"
   resource_group_name       = var.peering.config.first.resource_group_name
   virtual_network_name      = var.peering.config.first.virtual_network_name
   remote_virtual_network_id = var.peering.config.second.virtual_network_id
@@ -19,7 +19,7 @@ resource "azurerm_virtual_network_peering" "first" {
 resource "azurerm_virtual_network_peering" "second" {
   count = var.peering.enabled == true ? 1 : 0
 
-  name                      = "peer-${uuidv5("url", var.peering.config.second.virtual_network_id)}-to-${uuidv5("url", var.peering.config.first.virtual_network_id)}"
+  name                      = "peering-${uuidv5("url", var.peering.config.first.virtual_network_id)}"
   resource_group_name       = var.peering.config.second.resource_group_name
   virtual_network_name      = var.peering.config.second.virtual_network_name
   remote_virtual_network_id = var.peering.config.first.virtual_network_id
