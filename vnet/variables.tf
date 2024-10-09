@@ -51,7 +51,6 @@ variable "flow_logs" {
           resource_id  = string
         }))
       }))
-      vnet_flow_logs = optional(bool, true)
     }))
   })
   default = {

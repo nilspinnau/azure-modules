@@ -6,7 +6,7 @@ data "azurerm_network_watcher" "nw" {
 resource "azapi_resource" "vnet_flow_logs" {
   for_each = {
     for k, subnet in var.subnets : subnet.name => subnet
-    if var.flow_logs.enabled == true && try(var.flow_logs.config.vnet_flow_logs, false) == true
+    if var.flow_logs.enabled == true && coalesce(var.flow_logs.config.storage_account_id, "x") != "x"
   }
 
   type      = "Microsoft.Network/networkWatchers/flowLogs@2023-11-01"
