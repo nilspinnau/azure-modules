@@ -4,7 +4,7 @@ data "azurerm_network_watcher" "nw" {
 }
 
 resource "azapi_resource" "vnet_flow_logs" {
-  count = var.flow_logs.enabled == true
+  count = var.flow_logs.enabled == true ? 1 : 0
 
   type      = "Microsoft.Network/networkWatchers/flowLogs@2023-11-01"
   name      = "logs-${azurerm_virtual_network.default.name}"
