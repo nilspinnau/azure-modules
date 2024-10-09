@@ -23,6 +23,11 @@ variable "resource_postfix" {
   type = string
 }
 
+variable "dns_servers" {
+  type    = list(string)
+  default = []
+}
+
 variable "tags" {
   type        = map(any)
   default     = {}
@@ -47,7 +52,6 @@ variable "flow_logs" {
         }))
       }))
       vnet_flow_logs = optional(bool, true)
-      nsg_flow_logs  = optional(bool, false)
     }))
   })
   default = {
