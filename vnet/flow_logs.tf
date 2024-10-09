@@ -17,9 +17,9 @@ resource "azapi_resource" "vnet_flow_logs" {
       flowAnalyticsConfiguration = var.flow_logs.config.traffic_analytics.enabled ? {
         networkWatcherFlowAnalyticsConfiguration = {
           enabled               = var.flow_logs.config.traffic_analytics.enabled == true && var.flow_logs.config.traffic_analytics.workspace != null
-          workspace_id          = var.flow_logs.config.traffic_analytics.workspace.workspace_id
-          workspace_region      = var.flow_logs.config.traffic_analytics.workspace.location
-          workspace_resource_id = var.flow_logs.config.traffic_analytics.workspace.resource_id
+          workspaceId          = var.flow_logs.config.traffic_analytics.workspace.workspace_id
+          workspaceRegion      = var.flow_logs.config.traffic_analytics.workspace.location
+          workspaceResourceId = var.flow_logs.config.traffic_analytics.workspace.resource_id
         }
       } : {}
       format = {
