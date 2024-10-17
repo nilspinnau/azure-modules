@@ -1,5 +1,5 @@
 data "azurerm_network_watcher" "nw" {
-  name                = "NetworkWatcher_${var.az_region}"
+  name                = "NetworkWatcher_${var.location}"
   resource_group_name = "NetworkWatcherRG"
 }
 
@@ -8,7 +8,7 @@ resource "azapi_resource" "vnet_flow_logs" {
 
   type      = "Microsoft.Network/networkWatchers/flowLogs@2023-11-01"
   name      = "logs-${azurerm_virtual_network.default.name}"
-  location  = var.az_region
+  location  = var.location
   parent_id = data.azurerm_network_watcher.nw.id
 
   body = jsonencode({

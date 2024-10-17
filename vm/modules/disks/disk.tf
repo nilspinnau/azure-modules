@@ -5,7 +5,7 @@ resource "azurerm_managed_disk" "vm_disks" {
 
   name                = "disk-${each.value.lun}-${each.value.letter}-${var.resource_postfix}"
   resource_group_name = var.resource_group_name
-  location            = var.az_region
+  location            = var.location
 
   storage_account_type = try(each.value.type, var.disk_storage_type, "Standard_LRS")
   create_option        = try(each.value.create_option, "Empty")

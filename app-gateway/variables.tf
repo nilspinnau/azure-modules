@@ -1,4 +1,4 @@
-variable "az_region" {
+variable "location" {
   type = string
 }
 

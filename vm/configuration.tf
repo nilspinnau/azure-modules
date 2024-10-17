@@ -13,7 +13,7 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "default" {
   }
 
   name               = each.value.name
-  location           = var.az_region
+  location           = var.location
   virtual_machine_id = each.value.virtual_machine_id
   configuration {
     assignment_type = each.value.configuration.assignment_type

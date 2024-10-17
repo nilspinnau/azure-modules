@@ -13,13 +13,6 @@ resource "azurerm_monitor_diagnostic_setting" "agw" {
   log_analytics_workspace_id     = var.monitoring.config.workspace.resource_id
   log_analytics_destination_type = "Dedicated"
 
-  dynamic "metric" {
-    for_each = data.azurerm_monitor_diagnostic_categories.agw.0.metrics
-    content {
-      category = metric.value
-    }
-  }
-
   dynamic "enabled_log" {
     for_each = data.azurerm_monitor_diagnostic_categories.agw.0.log_category_types
     content {

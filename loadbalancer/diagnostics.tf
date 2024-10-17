@@ -20,11 +20,4 @@ resource "azurerm_monitor_diagnostic_setting" "loadblancer" {
       category = enabled_log.value
     }
   }
-
-  dynamic "metric" {
-    for_each = data.azurerm_monitor_diagnostic_categories.loadblancer.0.metrics
-    content {
-      category = metric.value
-    }
-  }
 }

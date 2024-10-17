@@ -1,4 +1,4 @@
-variable "az_region" {
+variable "location" {
   type        = string
   description = "Determines in which Azure region the resources should be deployed in."
 }

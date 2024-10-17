@@ -8,7 +8,7 @@ resource "azurerm_public_ip" "pip" {
 
   name                = "pip-agw-${var.name}-${var.resource_postfix}"
   resource_group_name = var.resource_group_name
-  location            = var.az_region
+  location            = var.location
 
   sku      = "Standard"
   sku_tier = "Regional"
@@ -28,7 +28,7 @@ resource "azurerm_public_ip" "pip" {
 resource "azurerm_application_gateway" "default" {
   name                = "agw-${var.resource_postfix}"
   resource_group_name = var.resource_group_name
-  location            = var.az_region
+  location            = var.location
 
   zones = var.zones
 
@@ -160,7 +160,7 @@ resource "azurerm_web_application_firewall_policy" "default" {
 
   name                = "wafpolicy-${var.resource_postfix}"
   resource_group_name = var.resource_group_name
-  location            = var.az_region
+  location            = var.location
 
   custom_rules {
     name      = "denymypublicip"

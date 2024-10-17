@@ -14,7 +14,7 @@ resource "azurerm_user_assigned_identity" "uid" {
   count = (var.user_assigned_identity.enabled == true || var.scale_set.enabled == true) && var.user_assigned_identity.config.create == true ? 1 : 0
 
   name                = "id-${var.server_name}-${var.resource_postfix}"
-  location            = var.az_region
+  location            = var.location
   resource_group_name = var.resource_group_name
 
   tags = var.tags
@@ -36,7 +36,7 @@ resource "azurerm_application_security_group" "default" {
   count = var.enable_asg == true ? 1 : 0
 
   name                = "asg-${var.server_name}-${var.resource_postfix}"
-  location            = var.az_region
+  location            = var.location
   resource_group_name = var.resource_group_name
 
   tags = var.tags
@@ -55,7 +55,7 @@ resource "azurerm_network_interface" "nic" {
 
   name                = "nic-${format("%s%02d", var.server_name, count.index)}-${var.resource_postfix}"
   resource_group_name = var.resource_group_name
-  location            = var.az_region
+  location            = var.location
 
   accelerated_networking_enabled = var.enable_accelerated_networking
 
@@ -99,7 +99,7 @@ resource "azurerm_availability_set" "aset" {
 
   name                = "aset-${var.server_name}-${var.resource_postfix}"
   resource_group_name = var.resource_group_name
-  location            = var.az_region
+  location            = var.location
 
   platform_fault_domain_count  = 3
   platform_update_domain_count = 3
@@ -449,13 +449,13 @@ resource "azapi_resource" "update_attach" {
   type      = "Microsoft.Maintenance/configurationAssignments@2023-04-01"
   name      = "default"
   parent_id = each.value
-  location  = var.az_region
+  location  = var.location
 
   body = jsonencode({
     properties = {
       filter = {
         locations = [
-          var.az_region
+          var.location
         ]
         osTypes = [
           local.is_windows ? "Windows" : "Linux"

@@ -4,7 +4,7 @@ resource "azurerm_windows_virtual_machine" "win_vm" {
 
   name                = format("%s%04d", var.server_name, count.index)
   computer_name       = format("%s%04d", var.server_name, count.index)
-  location            = var.az_region
+  location            = var.location
   resource_group_name = var.resource_group_name
   admin_username      = var.admin_username
   admin_password      = var.admin_password
@@ -101,7 +101,7 @@ module "windows_disks" {
   count = local.is_windows == true && var.scale_set.enabled == false ? var.instance_count : 0
 
   resource_group_name = var.resource_group_name
-  az_region           = var.az_region
+  location            = var.location
   resource_postfix    = "${format("%s%04d", var.server_name, count.index)}-${var.resource_postfix}"
   virtual_machine_id  = azurerm_windows_virtual_machine.win_vm[count.index].id
   disk_storage_type   = var.disk_storage_type
@@ -121,7 +121,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "win_vmss" {
 
   name                 = "vmss-${var.server_name}-${var.resource_postfix}"
   computer_name_prefix = var.server_name
-  location             = var.az_region
+  location             = var.location
   resource_group_name  = var.resource_group_name
   admin_username       = var.admin_username
   admin_password       = var.admin_password

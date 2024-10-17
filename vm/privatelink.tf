@@ -8,7 +8,7 @@ resource "azurerm_private_link_service" "default" {
 
   name                = "privatelink-${var.server_name}"
   resource_group_name = var.resource_group_name
-  location            = var.az_region
+  location            = var.location
 
   auto_approval_subscription_ids = [data.azurerm_client_config.current.subscription_id]
   enable_proxy_protocol          = false

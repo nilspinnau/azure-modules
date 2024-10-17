@@ -7,7 +7,7 @@ resource "azurerm_public_ip" "pip" {
 
   name                = "pip-lb-${var.name}-${each.value.name}-${var.resource_postfix}"
   resource_group_name = var.resource_group_name
-  location            = var.az_region
+  location            = var.location
 
   sku      = "Standard"
   sku_tier = "Regional"
@@ -25,7 +25,7 @@ resource "azurerm_public_ip" "pip" {
 
 resource "azurerm_lb" "lb" {
   name                = "lb-${var.name}-${var.resource_postfix}"
-  location            = var.az_region
+  location            = var.location
   resource_group_name = var.resource_group_name
 
   dynamic "frontend_ip_configuration" {

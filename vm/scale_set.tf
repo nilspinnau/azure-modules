@@ -4,7 +4,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   name                         = "vmss-${var.resource_postfix}-${var.server_name}"
   resource_group_name          = var.resource_group_name
   extension_operations_enabled = true
-  location                     = var.az_region
+  location                     = var.location
 
   platform_fault_domain_count = length(var.zones) > 0 ? 1 : 2
   instances                   = var.instance_count
@@ -147,7 +147,7 @@ resource "azurerm_monitor_autoscale_setting" "autoscalesetting" {
 
   name                = "autoscale_cpu_percentage"
   resource_group_name = var.resource_group_name
-  location            = var.az_region
+  location            = var.location
   target_resource_id  = var.scale_set.config.is_flexible_orchestration == true ? azurerm_orchestrated_virtual_machine_scale_set.vmss.0.id : (local.is_windows == true ? azurerm_windows_virtual_machine_scale_set.win_vmss.0.id : azurerm_linux_virtual_machine_scale_set.linux_vmss.0.id)
 
   enabled = true
