@@ -2,32 +2,8 @@ output "vm_ids" {
   value = local.is_windows == true ? [for vm in azurerm_windows_virtual_machine.win_vm : vm.id] : [for vm in azurerm_linux_virtual_machine.linux_vm : vm.id]
 }
 
+
 output "vms" {
-  value = local.is_windows == true ? azurerm_windows_virtual_machine.win_vm : azurerm_linux_virtual_machine.linux_vm
-}
-
-
-#         id   = string
-#         name = string
-#         zone = number
-#         os_disk = object({
-#           id                     = string
-#           storage_account_type   = string
-#           disk_encryption_type   = optional(string, null)
-#           disk_encryption_set_id = optional(string, null)
-#         })
-#         resource_group_name  = string
-#         network_interface_id = string
-#         managed_disks = optional(map(object({
-#           id                     = string
-#           name                   = string
-#           lun                    = number
-#           letter                 = string
-#           storage_account_type   = string
-#           disk_encryption_type   = optional(string, null)
-#           disk_encryption_set_id = optional(string, null)
-
-output "vms_2" {
   value = local.is_windows == true ? {
     for k, vm in azurerm_windows_virtual_machine.win_vm : k => {
       id   = vm.id

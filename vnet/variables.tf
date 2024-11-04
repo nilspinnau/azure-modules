@@ -4,16 +4,6 @@ variable "location" {
   description = "Determines in which Azure region the resources should be deployed in."
 }
 
-variable "stage" {
-  type = string
-  validation {
-    condition     = contains(["dev", "test", "qa", "prod"], var.stage)
-    error_message = "Stage must be of ['dev', 'test', 'qa', 'prod']"
-  }
-  default     = "dev"
-  description = "Stage of the deployment."
-}
-
 variable "resource_group_name" {
   type        = string
   description = "Name of the resource group in which to deploy the VMs."

@@ -10,17 +10,20 @@ resource "azurerm_route_table" "default" {
   location            = var.location
   resource_group_name = var.resource_group_name
 
-  dynamic "route" {
-    for_each = var.route_table.routes
-    content {
-      address_prefix         = route.value.address_prefix
-      name                   = route.value.name
-      next_hop_type          = route.value.next_hop_type
-      next_hop_in_ip_address = route.value.next_hop_in_ip_address
-    }
-  }
-
   tags = var.tags
+}
+
+
+resource "azurerm_route" "default" {
+  for_each = { for v in var.route_table.routes : v.route_name => v if var.route_table.enabled == true }
+
+  name                = each.value.route_name
+  resource_group_name = var.resource_group_name
+  route_table_name    = azurerm_route_table.default.0.name
+
+  address_prefix         = each.value.address_prefix
+  next_hop_type          = each.value.next_hop_type
+  next_hop_in_ip_address = each.value.next_hop_in_ip_address
 }
 
 
