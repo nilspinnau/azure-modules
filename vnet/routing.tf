@@ -15,9 +15,9 @@ resource "azurerm_route_table" "default" {
 
 
 resource "azurerm_route" "default" {
-  for_each = { for v in var.route_table.routes : v.route_name => v if var.route_table.enabled == true }
+  for_each = { for v in var.route_table.routes : v.name => v if var.route_table.enabled == true }
 
-  name                = each.value.route_name
+  name                = each.value.name
   resource_group_name = var.resource_group_name
   route_table_name    = azurerm_route_table.default.0.name
 
