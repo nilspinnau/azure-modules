@@ -109,7 +109,7 @@ resource "azurerm_virtual_network_gateway" "default" {
 }
 
 
-resource "azurerm_virtual_network_gateway_connection" "default" {
+resource "azurerm_virtual_network_gateway_connection" "direction_in" {
   count = var.connection != null ? 1 : 0
 
   name                = var.connection.name
@@ -129,7 +129,7 @@ resource "azurerm_virtual_network_gateway_connection" "default" {
 }
 
 
-resource "azurerm_virtual_network_gateway_connection" "default" {
+resource "azurerm_virtual_network_gateway_connection" "direction_out" {
   count = var.connection != null && var.connection.bi_directional_enabled == true ? 1 : 0
 
   name                = "${var.connection.name}-reverse"
