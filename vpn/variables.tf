@@ -121,6 +121,8 @@ variable "connection" {
     connection_mode = optional(string, "")
     enable_bgp      = optional(bool, false)
     shared_key      = optional(string, "")
+    bi_directional_enabled = optional(bool, true)
+    peer_virtual_network_gateway_id = optional(string, "")
   })
   default = null
 }

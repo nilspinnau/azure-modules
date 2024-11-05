@@ -118,7 +118,7 @@ resource "azurerm_virtual_network_gateway_connection" "direction_in" {
 
   virtual_network_gateway_id      = azurerm_virtual_network_gateway.default.id
   peer_virtual_network_gateway_id = var.connection.bi_directional_enabled == true ? var.connection.peer_virtual_network_gateway_id : null
-  local_network_gateway_id        = var.local_network_gateway != null ? azurerm_local_network_gateway.default.id : null
+  local_network_gateway_id        = var.local_network_gateway != null ? azurerm_local_network_gateway.default.0.id : null
   type                            = var.connection.type
 
   connection_mode = var.connection.connection_mode
