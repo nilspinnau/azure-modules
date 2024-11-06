@@ -145,7 +145,7 @@ variable "public_access" {
 
 variable "private_endpoints" {
   type = map(object({
-    name = optional(string, null)
+    name                                    = optional(string, null)
     tags                                    = optional(map(string), null)
     subnet_resource_id                      = string
     subresource_name                        = string

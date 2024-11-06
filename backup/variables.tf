@@ -38,7 +38,9 @@ variable "site_recovery" {
       vault_id            = string
       vault_principal_id  = string
       resource_group_name = string
+      app_name            = string
       replication_policy = object({
+        name                                                 = string
         recovery_point_retention_in_minutes                  = number
         application_consistent_snapshot_frequency_in_minutes = number
       })
