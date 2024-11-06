@@ -116,12 +116,12 @@ variable "custom_route" {
 
 variable "connection" {
   type = object({
-    name            = string
-    type            = string
-    connection_mode = optional(string, "")
-    enable_bgp      = optional(bool, false)
-    shared_key      = optional(string, "")
-    bi_directional_enabled = optional(bool, true)
+    name                            = string
+    type                            = string
+    connection_mode                 = optional(string, "")
+    enable_bgp                      = optional(bool, false)
+    shared_key                      = optional(string, "")
+    bi_directional_enabled          = optional(bool, true)
     peer_virtual_network_gateway_id = optional(string, "")
   })
   default = null

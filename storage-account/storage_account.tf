@@ -4,7 +4,7 @@ locals {
 }
 
 resource "random_string" "storage_account_name" {
-  length  = 15
+  length  = 24 - length(var.name)
   upper   = false
   special = false
 }
@@ -13,7 +13,7 @@ locals {
   # soft delete is enabled per default when storage kind is any kind other than BlobStorage
   enable_restore_policy = var.account_kind == "StorageV2" && var.account_tier == "Standard" && var.enable_versioning && var.enable_change_feed && var.enable_point_in_time_restore
 
-  sta_name = "sta${random_string.storage_account_name.result}"
+  sta_name = "${var.name}${random_string.storage_account_name.result}"
 }
 
 # https://github.com/hashicorp/terraform-provider-azurerm/issues/10872

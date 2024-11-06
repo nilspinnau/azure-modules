@@ -2,6 +2,11 @@ variable "location" {
   type = string
 }
 
+variable "name" {
+  type    = string
+  default = ""
+}
+
 variable "tags" {
   type    = map(any)
   default = {}

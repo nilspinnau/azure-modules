@@ -4,7 +4,7 @@
 resource "azurerm_site_recovery_fabric" "primary" {
   count = var.site_recovery.enabled == true ? 1 : 0
 
-  name     = "primary-fabric"
+  name     = "fb-primary-${var.site_recovery.config.app_name}-${var.site_recovery.config.primary.location}"
   location = var.site_recovery.config.primary.location
 
   resource_group_name = var.site_recovery.config.resource_group_name
@@ -14,7 +14,7 @@ resource "azurerm_site_recovery_fabric" "primary" {
 resource "azurerm_site_recovery_fabric" "secondary" {
   count = var.site_recovery.enabled == true ? 1 : 0
 
-  name     = "secondary-fabric"
+  name     = "fb-secondary-${var.site_recovery.config.app_name}-${var.site_recovery.config.secondary.location}"
   location = var.site_recovery.config.secondary.location
 
   resource_group_name = var.site_recovery.config.resource_group_name
@@ -24,7 +24,7 @@ resource "azurerm_site_recovery_fabric" "secondary" {
 resource "azurerm_site_recovery_protection_container" "primary" {
   count = var.site_recovery.enabled == true ? 1 : 0
 
-  name                = "primary-protection-container"
+  name                = "pc-primary-${var.site_recovery.config.app_name}-${var.site_recovery.config.secondary.location}"
   resource_group_name = var.site_recovery.config.resource_group_name
   recovery_vault_name = basename(var.site_recovery.config.vault_id)
 
@@ -34,7 +34,7 @@ resource "azurerm_site_recovery_protection_container" "primary" {
 resource "azurerm_site_recovery_protection_container" "secondary" {
   count = var.site_recovery.enabled == true ? 1 : 0
 
-  name                = "secondary-protection-container"
+  name                = "pc-secondary-${var.site_recovery.config.app_name}-${var.site_recovery.config.primary.location}"
   resource_group_name = var.site_recovery.config.resource_group_name
   recovery_vault_name = basename(var.site_recovery.config.vault_id)
 
@@ -44,7 +44,7 @@ resource "azurerm_site_recovery_protection_container" "secondary" {
 resource "azurerm_site_recovery_replication_policy" "policy" {
   count = var.site_recovery.enabled == true ? 1 : 0
 
-  name                = "policy"
+  name                = var.site_recovery.config.replication_policy.name
   resource_group_name = var.site_recovery.config.resource_group_name
   recovery_vault_name = basename(var.site_recovery.config.vault_id)
 
@@ -55,7 +55,7 @@ resource "azurerm_site_recovery_replication_policy" "policy" {
 resource "azurerm_site_recovery_protection_container_mapping" "failover_to_secondary" {
   count = var.site_recovery.enabled == true ? 1 : 0
 
-  name                = "container-mapping"
+  name                = "failover-${var.site_recovery.config.app_name}-to-${var.site_recovery.config.secondary.location}"
   resource_group_name = var.site_recovery.config.resource_group_name
   recovery_vault_name = basename(var.site_recovery.config.vault_id)
 
@@ -76,7 +76,7 @@ resource "azurerm_site_recovery_protection_container_mapping" "failover_to_secon
 resource "azurerm_site_recovery_protection_container_mapping" "failback_to_primary" {
   count = var.site_recovery.enabled == true ? 1 : 0
 
-  name                = "container-mapping"
+  name                = "failback-${var.site_recovery.config.app_name}-to-${var.site_recovery.config.primary.location}"
   resource_group_name = var.site_recovery.config.resource_group_name
   recovery_vault_name = basename(var.site_recovery.config.vault_id)
 
@@ -97,7 +97,7 @@ resource "azurerm_site_recovery_protection_container_mapping" "failback_to_prima
 resource "azurerm_site_recovery_network_mapping" "failover_to_primary" {
   count = var.site_recovery.enabled == true ? 1 : 0
 
-  name                = "network-mapping"
+  name                = "failover-${var.site_recovery.config.app_name}-to-${var.site_recovery.config.secondary.location}"
   resource_group_name = var.site_recovery.config.resource_group_name
   recovery_vault_name = basename(var.site_recovery.config.vault_id)
 
@@ -111,7 +111,7 @@ resource "azurerm_site_recovery_network_mapping" "failover_to_primary" {
 resource "azurerm_site_recovery_network_mapping" "failback_to_secondary" {
   count = var.site_recovery.enabled == true ? 1 : 0
 
-  name                = "network-mapping"
+  name                = "failback-${var.site_recovery.config.app_name}-to-${var.site_recovery.config.primary.location}"
   resource_group_name = var.site_recovery.config.resource_group_name
   recovery_vault_name = basename(var.site_recovery.config.vault_id)
 
@@ -158,7 +158,7 @@ resource "azurerm_key_vault_secret" "secondary" {
 resource "azurerm_site_recovery_replicated_vm" "default" {
   for_each = { for item in var.site_recovery.config.protected_items : item.name => item }
 
-  name                = "asr-${each.value.name}"
+  name                = each.value.name
   resource_group_name = var.site_recovery.config.resource_group_name
   recovery_vault_name = basename(var.site_recovery.config.vault_id)
 

@@ -4,18 +4,29 @@ variable "tags" {
   description = "Tags to set on the resources."
 }
 
-variable "backup_workloads" {
-  type = list(object({
-    id                  = string
-    name                = string
-    type                = string # disk or vm
-    policy_id           = string
-    vault_id            = string
-    location            = string
-    resource_group_name = string
-    principal_id        = string
-  }))
-  default  = []
+variable "backup" {
+  type = object({
+    enabled = optional(bool, false)
+    config = optional(object({
+      vault = object({
+        snapshot_resource_group_id         = optional(string, "") # required with type disk
+        snapshot_resource_group_name       = optional(string, "")
+        recovery_vault_resource_group_name = optional(string, "") # required with type vm
+        principal_id                       = string
+        rsv_policy_id                      = string
+        backup_policy_id                   = string
+        location                           = string
+        backup_vault_id                    = string
+        recovery_vault_name                = string
+      })
+      items = optional(list(object({
+        id   = string
+        name = string
+        type = string # disk or vm
+      })), [])
+    }))
+  })
+  default  = {}
   nullable = false
 }
 
