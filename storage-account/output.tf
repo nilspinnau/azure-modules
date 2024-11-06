@@ -1,42 +1,42 @@
 
-output "storage_account_id" {
+output "id" {
   description = "The ID of the storage account."
   value       = azurerm_storage_account.default.id
 }
 
-output "storage_account_name" {
+output "name" {
   description = "The name of the storage account."
   value       = azurerm_storage_account.default.name
 }
 
-output "storage_account_primary_blob_endpoint" {
+output "primary_blob_endpoint" {
   description = "The endpoint URL for blob storage in the primary location."
   value       = azurerm_storage_account.default.primary_blob_endpoint
 }
 
-output "storage_account_primary_web_endpoint" {
+output "primary_web_endpoint" {
   description = "The endpoint URL for web storage in the primary location."
   value       = azurerm_storage_account.default.primary_web_endpoint
 }
 
-output "storage_account_primary_web_host" {
+output "primary_web_host" {
   description = "The hostname with port if applicable for web storage in the primary location."
   value       = azurerm_storage_account.default.primary_web_host
 }
 
-output "storage_primary_connection_string" {
+output "primary_connection_string" {
   description = "The primary connection string for the storage account"
   value       = azurerm_storage_account.default.primary_connection_string
   sensitive   = true
 }
 
-output "storage_primary_access_key" {
+output "primary_access_key" {
   description = "The primary access key for the storage account"
   value       = azurerm_storage_account.default.primary_access_key
   sensitive   = true
 }
 
-output "storage_secondary_access_key" {
+output "secondary_access_key" {
   description = "The primary access key for the storage account."
   value       = azurerm_storage_account.default.secondary_access_key
   sensitive   = true
