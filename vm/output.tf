@@ -6,9 +6,10 @@ output "vm_ids" {
 output "vms" {
   value = local.is_windows == true ? {
     for k, vm in azurerm_windows_virtual_machine.win_vm : k => {
-      id   = vm.id
-      name = vm.name
-      zone = vm.zone
+      id       = vm.id
+      name     = vm.name
+      identity = vm.identity
+      zone     = vm.zone
       os_disk = {
         id                     = data.azurerm_managed_disk.win_os_disk[k].id
         name                   = data.azurerm_managed_disk.win_os_disk[k].name
@@ -22,9 +23,10 @@ output "vms" {
     }
     } : {
     for k, vm in azurerm_linux_virtual_machine.linux_vm : k => {
-      id   = vm.id
-      name = vm.name
-      zone = vm.zone
+      id       = vm.id
+      name     = vm.name
+      identity = vm.identity
+      zone     = vm.zone
       os_disk = {
         id                     = data.azurerm_managed_disk.linux_os_disk[k].id
         name                   = data.azurerm_managed_disk.linux_os_disk[k].name
