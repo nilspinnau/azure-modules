@@ -192,6 +192,11 @@ variable "user_assigned_identity" {
   nullable = false
 }
 
+variable "gallery_applications" {
+  type    = list(string)
+  default = []
+}
+
 variable "extensions" {
   type = list(object({
     name                      = string

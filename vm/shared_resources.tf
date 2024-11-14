@@ -478,3 +478,11 @@ resource "azapi_resource" "update_attach" {
     time_sleep.configuration_apply
   ]
 }
+
+
+resource "azurerm_virtual_machine_gallery_application_assignment" "default" {
+  count = length(local.vm_ids) * length(var.gallery_applications)
+
+  gallery_application_version_id = var.gallery_applications[count.index % length(var.gallery_applications)].name
+  virtual_machine_id             = local.vm_ids[count.index % length(local.vm_ids)]
+}
