@@ -37,11 +37,11 @@ variable "supported_os_type" {
 variable "versions" {
   type = map(object({
     name = string
-    target_regions = map(object({
+    target_regions = optional(map(object({
       name                   = string
       regional_replica_count = number
       storage_account_type   = string
-    }), {})
+    })), {})
     manage_action = object({
       install = string
       remove  = string
