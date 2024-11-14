@@ -49,10 +49,10 @@ variable "versions" {
     source = object({
       media_link = string
     })
-    config_file         = optional(string, "")
+    config_file         = optional(string, null)
     enable_health_check = optional(bool, false)
-    end_of_life_date    = optional(string, "")
+    end_of_life_date    = optional(string, null)
     exclude_from_latest = optional(bool, false)
-    package_file        = optional(string, "")
+    package_file        = optional(string, null)
   }))
 }
