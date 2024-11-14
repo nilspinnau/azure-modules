@@ -52,7 +52,7 @@ variable "versions" {
     config_file         = optional(string, "")
     enable_health_check = optional(bool, false)
     end_of_life_date    = optional(string, "")
-    exclude_from_latest = optional(string, "")
+    exclude_from_latest = optional(bool, false)
     package_file        = optional(string, "")
   }))
 }
