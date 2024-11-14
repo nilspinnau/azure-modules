@@ -14,9 +14,9 @@ variable "virtual_machine_id" {
   description = "ID of the VM to which the disks get attached to."
 }
 
-variable "resource_postfix" {
+variable "resource_suffix" {
   type        = string
-  description = "Postfix for all resources which will be deployed."
+  description = "Suffix for all resources which will be deployed."
 }
 
 variable "disk_storage_type" {

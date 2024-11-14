@@ -1,7 +1,7 @@
 resource "azurerm_public_ip" "default" {
   for_each = var.ip_configuration
 
-  name                = "pip-vpn-${var.resource_postfix}"
+  name                = "pip-vpn-${var.resource_suffix}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -20,7 +20,7 @@ resource "azurerm_public_ip" "default" {
 }
 
 resource "azurerm_virtual_network_gateway" "default" {
-  name                = "vpn-${var.resource_postfix}"
+  name                = "vpn-${var.resource_suffix}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -152,7 +152,7 @@ resource "azurerm_virtual_network_gateway_connection" "direction_out" {
 resource "azurerm_local_network_gateway" "default" {
   count = var.local_network_gateway != null ? 1 : 0
 
-  name                = "lgw-${var.resource_postfix}"
+  name                = "lgw-${var.resource_suffix}"
   location            = var.location
   resource_group_name = var.resource_group_name
 

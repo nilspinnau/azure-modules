@@ -1,7 +1,7 @@
 resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   count = var.scale_set.enabled == true && var.scale_set.config.is_flexible_orchestration == true ? 1 : 0
 
-  name                         = "vmss-${var.resource_postfix}-${var.server_name}"
+  name                         = "vmss-${var.resource_suffix}-${var.server_name}"
   resource_group_name          = var.resource_group_name
   extension_operations_enabled = true
   location                     = var.location
@@ -29,7 +29,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   dynamic "network_interface" {
     for_each = var.scale_set.config.automatic_scaling == true ? [1] : []
     content {
-      name                          = "nic-${var.resource_postfix}-${var.server_name}"
+      name                          = "nic-${var.resource_suffix}-${var.server_name}"
       dns_servers                   = []
       enable_accelerated_networking = var.enable_accelerated_networking
       enable_ip_forwarding          = false

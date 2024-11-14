@@ -1,6 +1,6 @@
 
 resource "azurerm_virtual_network" "default" {
-  name                = "vnet-${var.resource_postfix}"
+  name                = "vnet-${var.resource_suffix}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -56,7 +56,7 @@ resource "azurerm_public_ip" "pip" {
     if subnet.nat_gateway == true
   }
 
-  name                = "pip-nat-${each.value.name}-${var.resource_postfix}"
+  name                = "pip-nat-${each.value.name}-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
   allocation_method   = "Static"
@@ -68,7 +68,7 @@ resource "azurerm_nat_gateway" "nat" {
     for k, subnet in var.subnets : subnet.name => subnet
     if subnet.nat_gateway == true
   }
-  name                = "nat-${each.value.name}-${var.resource_postfix}"
+  name                = "nat-${each.value.name}-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
 }

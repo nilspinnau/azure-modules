@@ -6,7 +6,7 @@
 resource "azurerm_route_table" "default" {
   count = var.route_table.enabled == true ? 1 : 0
 
-  name                = "rt-${var.resource_postfix}"
+  name                = "rt-${var.resource_suffix}"
   location            = var.location
   resource_group_name = var.resource_group_name
 

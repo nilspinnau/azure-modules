@@ -61,7 +61,7 @@ locals {
 resource "azurerm_portal_dashboard" "default" {
   count = var.log_analytics_workspace_id != null ? 1 : 0
 
-  name                 = "db-vpn-${var.resource_postfix}"
+  name                 = "db-vpn-${var.resource_suffix}"
   resource_group_name  = var.resource_group_name
   location             = var.location
   tags                 = var.tags

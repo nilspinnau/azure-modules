@@ -29,9 +29,9 @@ variable "os_disk_size" {
   description = "The OS disk size of the VMs."
 }
 
-variable "resource_postfix" {
+variable "resource_suffix" {
   type        = string
-  description = "Postfix for all resources which will be deployed."
+  description = "Suffix for all resources which will be deployed."
 }
 
 variable "additional_ips" {

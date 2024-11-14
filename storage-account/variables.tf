@@ -12,7 +12,7 @@ variable "tags" {
   default = {}
 }
 
-variable "resource_postfix" {
+variable "resource_suffix" {
   type = string
 }
 

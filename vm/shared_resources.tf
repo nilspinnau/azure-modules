@@ -13,7 +13,7 @@ resource "time_sleep" "wait_vm_creation" {
 resource "azurerm_user_assigned_identity" "uid" {
   count = (var.user_assigned_identity.enabled == true || var.scale_set.enabled == true) && var.user_assigned_identity.config.create == true ? 1 : 0
 
-  name                = "id-${var.server_name}-${var.resource_postfix}"
+  name                = "id-${var.server_name}-${var.resource_suffix}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -35,7 +35,7 @@ resource "azurerm_role_assignment" "default" {
 resource "azurerm_application_security_group" "default" {
   count = var.enable_asg == true ? 1 : 0
 
-  name                = "asg-${var.server_name}-${var.resource_postfix}"
+  name                = "asg-${var.server_name}-${var.resource_suffix}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
@@ -53,7 +53,7 @@ resource "azurerm_network_interface" "nic" {
 
   count = var.scale_set.enabled == false ? var.instance_count : 0
 
-  name                = "nic-${format("%s%02d", var.server_name, count.index)}-${var.resource_postfix}"
+  name                = "nic-${format("%s%02d", var.server_name, count.index)}-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
 
@@ -97,7 +97,7 @@ resource "azurerm_availability_set" "aset" {
 
   count = var.enable_availability_set && var.scale_set.enabled == false ? 1 : 0
 
-  name                = "aset-${var.server_name}-${var.resource_postfix}"
+  name                = "aset-${var.server_name}-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
 

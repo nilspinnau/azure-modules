@@ -9,7 +9,7 @@ variable "resource_group_name" {
   description = "Name of the resource group in which to deploy the VMs."
 }
 
-variable "resource_postfix" {
+variable "resource_suffix" {
   type = string
 }
 

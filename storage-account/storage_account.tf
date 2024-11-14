@@ -175,12 +175,12 @@ resource "azapi_resource" "fileshares" {
   name      = lower(each.value.name)
   parent_id = "${azurerm_storage_account.default.id}/fileServices/default"
   type      = "Microsoft.Storage/storageAccounts/fileServices/shares@2022-09-01"
-  body = jsonencode({
+  body = {
     properties = {
       metadata   = {}
       shareQuota = each.value.quota < 100 ? 100 : each.value.quota
     }
-  })
+  }
 
   tags = var.tags
 
@@ -193,7 +193,7 @@ resource "azapi_resource" "tables" {
   name      = lower(each.value)
   parent_id = "${azurerm_storage_account.default.id}/tableServices/default"
   type      = "Microsoft.Storage/storageAccounts/tableServices/tables@2022-09-01"
-  body      = jsonencode({})
+  body      = {}
 
   tags = var.tags
 
@@ -206,11 +206,11 @@ resource "azapi_resource" "queues" {
   name      = lower(each.value)
   parent_id = "${azurerm_storage_account.default.id}/queueServices/default"
   type      = "Microsoft.Storage/storageAccounts/queueServices/queues@2022-09-01"
-  body = jsonencode({
+  body = {
     properties = {
       metadata = {}
     }
-  })
+  }
 
   tags = var.tags
 
@@ -223,7 +223,7 @@ resource "azapi_resource" "lifecycle_policy" {
   type      = "Microsoft.Storage/storageAccounts/managementPolicies@2022-09-01"
   name      = "default"
   parent_id = azurerm_storage_account.default.id
-  body = jsonencode({
+  body = {
     properties = {
       policy = {
         rules = [for idx, rule in var.lifecycles : {
@@ -268,7 +268,7 @@ resource "azapi_resource" "lifecycle_policy" {
         }]
       }
     }
-  })
+  }
 
   tags = var.tags
 

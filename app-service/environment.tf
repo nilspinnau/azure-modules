@@ -11,7 +11,7 @@ locals {
 resource "azurerm_subnet" "default" {
   count = local.create_subnet ? 1 : 0
 
-  name                 = "snet-${var.resource_postfix}"
+  name                 = "snet-${var.resource_suffix}"
   resource_group_name  = local.split_vnet_id[index(split("/", local.split_vnet_id), "Microsoft.Resource")]
   virtual_network_name = local.split_vnet_id[length(local.split_vnet_id) - 1]
   address_prefixes     = [var.service_plan.environment.config.address_prefix, ]
@@ -30,7 +30,7 @@ resource "azurerm_subnet" "default" {
 }
 
 resource "azurerm_app_service_environment_v3" "default" {
-  name                = "ase-${var.resource_postfix}"
+  name                = "ase-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   subnet_id           = local.subnet_id
 

@@ -6,7 +6,7 @@ resource "azurerm_public_ip" "pip" {
     if ipconfig.is_public == true
   }
 
-  name                = "pip-agw-${var.name}-${var.resource_postfix}"
+  name                = "pip-agw-${var.name}-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
 
@@ -26,7 +26,7 @@ resource "azurerm_public_ip" "pip" {
 
 
 resource "azurerm_application_gateway" "default" {
-  name                = "agw-${var.resource_postfix}"
+  name                = "agw-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
 
@@ -158,7 +158,7 @@ resource "azurerm_application_gateway" "default" {
 resource "azurerm_web_application_firewall_policy" "default" {
   count = var.waf_configuration.enabled == true ? 1 : 0
 
-  name                = "wafpolicy-${var.resource_postfix}"
+  name                = "wafpolicy-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
 

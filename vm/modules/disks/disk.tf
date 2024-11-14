@@ -3,7 +3,7 @@ resource "azurerm_managed_disk" "vm_disks" {
   # we create x disks for each vm we create
   for_each = { for data_disk in var.additional_disks : data_disk.lun => data_disk }
 
-  name                = "disk-${each.value.lun}-${each.value.letter}-${var.resource_postfix}"
+  name                = "disk-${each.value.lun}-${each.value.letter}-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
 

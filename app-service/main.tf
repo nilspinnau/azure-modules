@@ -1,6 +1,6 @@
 
 resource "azurerm_service_plan" "default" {
-  name                = "asp-${var.resource_postfix}"
+  name                = "asp-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
   os_type             = var.service_plan.os_type

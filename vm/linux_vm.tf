@@ -35,7 +35,7 @@ resource "azurerm_linux_virtual_machine" "linux_vm" {
   ]
 
   os_disk {
-    name                 = "osdisk-${format("%s%04d", var.server_name, count.index)}-${var.resource_postfix}"
+    name                 = "osdisk-${format("%s%04d", var.server_name, count.index)}-${var.resource_suffix}"
     caching              = "ReadWrite"
     storage_account_type = var.disk_storage_type
     disk_size_gb         = var.os_disk_size
@@ -79,7 +79,7 @@ module "linux_disks" {
 
   resource_group_name = var.resource_group_name
   location            = var.location
-  resource_postfix    = "${format("%s%04d", var.server_name, count.index)}-${var.resource_postfix}"
+  resource_suffix     = "${format("%s%04d", var.server_name, count.index)}-${var.resource_suffix}"
   virtual_machine_id  = azurerm_linux_virtual_machine.linux_vm[count.index].id
   disk_storage_type   = var.disk_storage_type
   additional_disks    = var.additional_disks
@@ -96,7 +96,7 @@ module "linux_disks" {
 data "azurerm_managed_disk" "linux_os_disk" {
   count = local.is_windows == false && var.scale_set.enabled == false ? var.instance_count : 0
 
-  name                = "osdisk-${format("%s%04d", var.server_name, count.index)}-${var.resource_postfix}"
+  name                = "osdisk-${format("%s%04d", var.server_name, count.index)}-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
 
   depends_on = [
@@ -109,7 +109,7 @@ data "azurerm_managed_disk" "linux_os_disk" {
 resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
   count = local.is_windows == false && var.scale_set.enabled == true && try(var.scale_set.config.is_flexible_orchestration, false) == false ? 1 : 0
 
-  name                 = "vmss-${var.server_name}-${var.resource_postfix}"
+  name                 = "vmss-${var.server_name}-${var.resource_suffix}"
   computer_name_prefix = var.server_name
   location             = var.location
   resource_group_name  = var.resource_group_name
@@ -133,7 +133,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
   secure_boot_enabled = var.secure_boot_enabled
 
   network_interface {
-    name                          = "nic-${var.resource_postfix}-${var.server_name}"
+    name                          = "nic-${var.resource_suffix}-${var.server_name}"
     dns_servers                   = []
     enable_accelerated_networking = var.enable_accelerated_networking
     enable_ip_forwarding          = false

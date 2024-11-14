@@ -5,7 +5,7 @@ resource "azurerm_public_ip" "pip" {
     if ipconfig.is_public == true
   }
 
-  name                = "pip-lb-${var.name}-${each.value.name}-${var.resource_postfix}"
+  name                = "pip-lb-${var.name}-${each.value.name}-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
 
@@ -24,7 +24,7 @@ resource "azurerm_public_ip" "pip" {
 }
 
 resource "azurerm_lb" "lb" {
-  name                = "lb-${var.name}-${var.resource_postfix}"
+  name                = "lb-${var.name}-${var.resource_suffix}"
   location            = var.location
   resource_group_name = var.resource_group_name
 

@@ -12,9 +12,9 @@ variable "resource_group_name" {
   description = "Name of the resource group in which to deploy the VMs."
 }
 
-variable "resource_postfix" {
+variable "resource_suffix" {
   type        = string
-  description = "Postfix for all resources which will be deployed."
+  description = "Suffix for all resources which will be deployed."
 }
 
 variable "frontend_ip_configurations" {

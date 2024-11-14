@@ -9,9 +9,9 @@ variable "resource_group_name" {
 }
 
 
-variable "resource_postfix" {
+variable "resource_suffix" {
   type        = string
-  description = "Postfix for all resources which will be deployed."
+  description = "Suffix for all resources which will be deployed."
 }
 
 variable "zone_redundant" {

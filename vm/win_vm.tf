@@ -51,7 +51,7 @@ resource "azurerm_windows_virtual_machine" "win_vm" {
   }
 
   os_disk {
-    name                   = "osdisk-${format("%s%04d", var.server_name, count.index)}-${var.resource_postfix}"
+    name                   = "osdisk-${format("%s%04d", var.server_name, count.index)}-${var.resource_suffix}"
     caching                = "ReadWrite"
     storage_account_type   = var.disk_storage_type
     disk_size_gb           = var.os_disk_size
@@ -86,7 +86,7 @@ resource "azurerm_windows_virtual_machine" "win_vm" {
 data "azurerm_managed_disk" "win_os_disk" {
   count = local.is_windows == true && var.scale_set.enabled == false ? var.instance_count : 0
 
-  name                = "osdisk-${format("%s%04d", var.server_name, count.index)}-${var.resource_postfix}"
+  name                = "osdisk-${format("%s%04d", var.server_name, count.index)}-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
 
   depends_on = [
@@ -102,7 +102,7 @@ module "windows_disks" {
 
   resource_group_name = var.resource_group_name
   location            = var.location
-  resource_postfix    = "${format("%s%04d", var.server_name, count.index)}-${var.resource_postfix}"
+  resource_suffix     = "${format("%s%04d", var.server_name, count.index)}-${var.resource_suffix}"
   virtual_machine_id  = azurerm_windows_virtual_machine.win_vm[count.index].id
   disk_storage_type   = var.disk_storage_type
   additional_disks    = var.additional_disks
@@ -119,7 +119,7 @@ module "windows_disks" {
 resource "azurerm_windows_virtual_machine_scale_set" "win_vmss" {
   count = local.is_windows == true && var.scale_set.enabled == true && var.scale_set.config.is_flexible_orchestration == false ? 1 : 0
 
-  name                 = "vmss-${var.server_name}-${var.resource_postfix}"
+  name                 = "vmss-${var.server_name}-${var.resource_suffix}"
   computer_name_prefix = var.server_name
   location             = var.location
   resource_group_name  = var.resource_group_name
@@ -155,7 +155,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "win_vmss" {
   }
 
   network_interface {
-    name                          = "nic-${var.resource_postfix}-${var.server_name}"
+    name                          = "nic-${var.resource_suffix}-${var.server_name}"
     dns_servers                   = []
     enable_accelerated_networking = var.enable_accelerated_networking
     enable_ip_forwarding          = false
