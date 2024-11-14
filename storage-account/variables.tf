@@ -68,19 +68,25 @@ variable "min_tls_version" {
 
 variable "blob_soft_delete_retention_days" {
   description = "Specifies the number of days that the blob should be retained, between '1' and '365' days. Defaults to '7'"
-  default     = 7
+  default     = null
   type        = number
 }
 
 variable "container_soft_delete_retention_days" {
   description = "Specifies the number of days that the blob should be retained, between '1' and '365' days. Defaults to '7'"
-  default     = 7
+  default     = null
+  type        = number
+}
+
+variable "share_soft_delete_retention_days" {
+  description = "Specifies the number of days that the share should be retained, between '1' and '365' days. Defaults to '7'"
+  default     = null
   type        = number
 }
 
 variable "change_feed_retention_in_days" {
   type    = number
-  default = 7
+  default = null
   validation {
     condition     = var.change_feed_retention_in_days >= 1 && var.change_feed_retention_in_days <= 146000
     error_message = "The possible values are between 1 and 146000 days (400 years). Default is 7"
@@ -90,7 +96,7 @@ variable "change_feed_retention_in_days" {
 
 variable "queue_retention_policy_days" {
   description = "Specifies the number of days that the queue logs should be retained"
-  default     = 7
+  default     = null
   type        = number
 }
 

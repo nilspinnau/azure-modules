@@ -60,19 +60,19 @@ resource "azurerm_storage_account" "default" {
     for_each = var.account_kind != "FileStorage" ? [1] : []
     content {
       dynamic "delete_retention_policy" {
-        for_each = (var.account_kind != "BlobStorage") ? [1] : []
+        for_each = var.account_kind != "BlobStorage" && var.blob_soft_delete_retention_days != null ? [1] : []
         content {
           days = var.blob_soft_delete_retention_days
         }
       }
       dynamic "container_delete_retention_policy" {
-        for_each = (var.account_kind != "BlobStorage") ? [1] : []
+        for_each = var.account_kind != "BlobStorage" && var.container_soft_delete_retention_days != null ? [1] : []
         content {
           days = var.container_soft_delete_retention_days
         }
       }
       dynamic "restore_policy" {
-        for_each = local.enable_restore_policy ? [1] : []
+        for_each = local.enable_restore_policy && var.blob_soft_delete_retention_days != null ? [1] : []
         content {
           days = var.blob_soft_delete_retention_days - 1
         }
@@ -85,10 +85,10 @@ resource "azurerm_storage_account" "default" {
   }
 
   dynamic "share_properties" {
-    for_each = var.account_kind == "StorageV2" || var.account_kind == "FileStorage" ? [1] : []
+    for_each = (var.account_kind == "StorageV2" || var.account_kind == "FileStorage") && var.share_soft_delete_retention_days != null ? [1] : []
     content {
       retention_policy {
-        days = 14
+        days = var.share_soft_delete_retention_days
       }
     }
   }
