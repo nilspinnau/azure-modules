@@ -31,7 +31,7 @@ resource "azurerm_gallery_application_version" "default" {
   }
 
   dynamic "target_region" {
-    for_each = each.value.replicated_regions
+    for_each = each.value.target_regions
     content {
       name                   = target_region.value.name
       regional_replica_count = target_region.value.regional_replica_count
