@@ -147,11 +147,11 @@ resource "azapi_resource" "containers" {
   name      = lower(each.value)
   parent_id = "${azurerm_storage_account.default.id}/blobServices/default"
   type      = "Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01"
-  body = jsonencode({
+  body = {
     properties = {
       publicAccess = "None"
     }
-  })
+  }
 
   tags = var.tags
 
