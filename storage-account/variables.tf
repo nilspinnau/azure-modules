@@ -88,7 +88,7 @@ variable "change_feed_retention_in_days" {
   type    = number
   default = null
   validation {
-    condition     = var.change_feed_retention_in_days == null || (var.change_feed_retention_in_days >= 1 && var.change_feed_retention_in_days <= 146000)
+    condition     = coalesce(var.change_feed_retention_in_days, 1) >= 1 && coalesce(var.change_feed_retention_in_days, 1) <= 146000
     error_message = "The possible values are between 1 and 146000 days (400 years). Default is 7"
   }
 }
