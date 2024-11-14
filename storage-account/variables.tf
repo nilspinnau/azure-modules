@@ -137,11 +137,7 @@ variable "public_access" {
       bypass     = optional(list(string), [])
       ip_rules   = optional(list(string), [])
       subnet_ids = optional(list(string), [])
-      }), {
-      bypass     = []
-      ip_rules   = []
-      subnet_ids = []
-    })
+    }), null)
   })
   default = {
     enabled = true

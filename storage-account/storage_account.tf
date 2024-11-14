@@ -119,7 +119,7 @@ resource "azurerm_storage_account" "default" {
   }
 
   dynamic "network_rules" {
-    for_each = var.public_access.enabled == true ? [1] : []
+    for_each = var.public_access.network_rules != null ? [1] : []
     content {
       default_action             = "Deny"
       bypass                     = var.public_access.network_rules.bypass
