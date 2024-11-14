@@ -123,7 +123,7 @@ resource "azurerm_site_recovery_network_mapping" "failback_to_secondary" {
 }
 
 data "azapi_resource_list" "primary_encryption_keys" {
-  count = anytrue([for item in var.site_recovery.config.protected_items : item.os_disk.disk_encryption_type == "ade" || anytrue([for disk in item.managed_disks : disk.disk_encryption_type == "ade"])]) ? 1 : 0
+  count = anytrue([for item in var.site_recovery.config.protected_items : item.os_disk.disk_encryption_type == "ade" || anytrue([for disk in item.managed_disks : disk.disk_encryption_type == "ade"])]) && var.site_recovery.enabled == true ? 1 : 0
 
   type                   = "Microsoft.KeyVault/vaults/secrets@2023-07-01"
   parent_id              = var.site_recovery.config.primary.key_vault_id
@@ -137,7 +137,7 @@ data "azapi_resource_list" "primary_encryption_keys" {
 # }
 
 data "azurerm_key_vault_secret" "primary" {
-  for_each = { for k, item in try(jsondecode(data.azapi_resource_list.primary_encryption_keys.0.output).value, []) : k => item }
+  for_each = { for k, item in try(jsondecode(data.azapi_resource_list.primary_encryption_keys.0.output).value, []) : k => item if var.site_recovery.enabled == true }
 
   name         = each.value.name
   key_vault_id = var.site_recovery.config.primary.key_vault_id
@@ -145,7 +145,7 @@ data "azurerm_key_vault_secret" "primary" {
 
 # recreate all the keys in the respective region
 resource "azurerm_key_vault_secret" "secondary" {
-  for_each = { for k, item in data.azurerm_key_vault_secret.primary : k => item }
+  for_each = { for k, item in data.azurerm_key_vault_secret.primary : k => item if var.site_recovery.enabled == true }
 
   name  = each.value.name
   value = each.value.value
@@ -156,7 +156,7 @@ resource "azurerm_key_vault_secret" "secondary" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "default" {
-  for_each = { for item in var.site_recovery.config.protected_items : item.name => item }
+  for_each = { for item in var.site_recovery.config.protected_items : item.name => item if var.site_recovery.enabled == true }
 
   name                = each.value.name
   resource_group_name = var.site_recovery.config.resource_group_name
