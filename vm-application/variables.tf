@@ -41,7 +41,7 @@ variable "versions" {
       name                   = string
       regional_replica_count = number
       storage_account_type   = string
-    }))
+    }), {})
     manage_action = object({
       install = string
       remove  = string
