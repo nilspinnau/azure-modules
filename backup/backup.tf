@@ -1,6 +1,6 @@
 
 resource "azurerm_backup_protected_vm" "default" {
-  for_each = { for item in var.backup.config.items : item.name => item if item.type == "vm" }
+  for_each = { for item in var.backup.config.items : item.name => item if item.type == "vm" && var.backup.enabled == true }
   # count = length([ for item in var.site_recovery.config.protected_items : item if var.backup_workload.type == "vm"])
 
   resource_group_name = var.backup.config.vault.recovery_vault_resource_group_name
@@ -13,7 +13,7 @@ resource "azurerm_backup_protected_vm" "default" {
 
 
 resource "azurerm_data_protection_backup_instance_disk" "default" {
-  for_each = { for item in var.backup.config.items : item.name => item if item.type == "disk" }
+  for_each = { for item in var.backup.config.items : item.name => item if item.type == "disk" && var.backup.enabled == true }
 
   name                         = each.value.name
   location                     = var.backup.config.vault.location
@@ -29,7 +29,7 @@ resource "azurerm_data_protection_backup_instance_disk" "default" {
 }
 
 resource "azurerm_role_assignment" "disk_reader" {
-  for_each = { for item in var.backup.config.items : item.name => item if item.type == "disk" }
+  for_each = { for item in var.backup.config.items : item.name => item if item.type == "disk" && var.backup.enabled == true }
 
   scope                = each.value.id
   role_definition_name = "Disk Backup Reader"
