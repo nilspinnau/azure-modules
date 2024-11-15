@@ -179,7 +179,11 @@ variable "user_assigned_identity" {
     config = object({
       create = optional(bool, true)
       id     = optional(string, null)
-      roles  = optional(list(string), [])
+      roles = optional(map(object({
+        id    = optional(string, null)
+        name  = optional(string, null)
+        scope = string
+      })), {})
     })
   })
   default = {

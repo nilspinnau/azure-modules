@@ -26,8 +26,9 @@ resource "azurerm_role_assignment" "default" {
     if(var.user_assigned_identity.enabled == true || var.scale_set.enabled == true) && var.user_assigned_identity.config.create == true
   }
 
-  scope                = var.resource_group_id
-  role_definition_name = each.value
+  scope                = each.value.scope
+  role_definition_name = each.value.name
+  role_definition_id   = each.value.id
   principal_id         = azurerm_user_assigned_identity.uid.0.principal_id
 }
 
