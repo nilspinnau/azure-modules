@@ -176,7 +176,7 @@ variable "enable_accelerated_networking" {
 variable "user_assigned_identity" {
   type = object({
     enabled = optional(bool, false)
-    config = object({
+    config = optional(object({
       create = optional(bool, true)
       id     = optional(string, null)
       roles = optional(map(object({
@@ -184,15 +184,9 @@ variable "user_assigned_identity" {
         name  = optional(string, null)
         scope = string
       })), {})
-    })
+    }), {})
   })
-  default = {
-    enabled = false
-    config = {
-      create = true
-      roles  = []
-    }
-  }
+  default  = {}
   nullable = false
 }
 

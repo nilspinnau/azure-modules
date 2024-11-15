@@ -50,3 +50,13 @@ output "privatelink" {
     id    = try(azurerm_private_link_service.default.0.id, null)
   }
 }
+
+output "user_assigned_identity" {
+  value = {
+    for id in azurerm_user_assigned_identity.uid : id.name => {
+      name  = id.name
+      scope = id.scope
+      id    = id.principal_id
+    }
+  }
+}
