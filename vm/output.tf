@@ -53,8 +53,7 @@ output "privatelink" {
 
 output "user_assigned_identity" {
   value = var.user_assigned_identity.enabled == true ? {
-    name  = azurerm_role_assignment.name
-    roles = var.user_assigned_identity.config.roles
     id    = coalesce(var.user_assigned_identity.config.id, azurerm_user_assigned_identity.uid.0.id)
+    roles = var.user_assigned_identity.config.roles
   } : null
 }
