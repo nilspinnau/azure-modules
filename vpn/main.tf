@@ -113,7 +113,7 @@ resource "azurerm_virtual_network_gateway_connection" "direction_in" {
   resource_group_name = var.resource_group_name
 
   virtual_network_gateway_id      = azurerm_virtual_network_gateway.default.id
-  peer_virtual_network_gateway_id = each.value.bi_directional_enabled == true ? each.value.peer_virtual_network_gateway_id : null
+  peer_virtual_network_gateway_id = coalesce(each.value.peer_virtual_network_gateway_id, null)
   local_network_gateway_id        = var.local_network_gateway != null ? azurerm_local_network_gateway.default.0.id : null
   type                            = each.value.type
 
