@@ -9,7 +9,7 @@ resource "azurerm_network_security_group" "default" {
     if subnet.enable_nsg == true
   }
 
-  name                = "nsg-${each.k}"
+  name                = "nsg-${each.key}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
