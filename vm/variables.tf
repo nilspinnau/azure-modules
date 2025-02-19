@@ -161,7 +161,7 @@ variable "server_name" {
 }
 
 variable "zones" {
-  type     = list(string)
+  type     = set(string)
   default  = ["1", "2", "3"]
   nullable = false
 }
@@ -202,7 +202,7 @@ variable "extensions" {
     type                      = string
     settings                  = optional(any, null)
     protected_settings        = optional(any, null)
-    automatic_upgrade_enabled = optional(bool, true)
+    automatic_upgrade_enabled = optional(bool, false)
     version                   = optional(string, "1.0")
   }))
   nullable = false

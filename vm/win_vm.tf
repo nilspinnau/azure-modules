@@ -12,7 +12,7 @@ resource "azurerm_windows_virtual_machine" "win_vm" {
   availability_set_id          = var.enable_availability_set == true && length(var.zones) > 0 == false && var.scale_set.enabled == false ? one(azurerm_availability_set.aset[*].id) : null
   virtual_machine_scale_set_id = var.scale_set.enabled == true ? azurerm_orchestrated_virtual_machine_scale_set.vmss.0.id : null
 
-  zone = length(var.zones) > 0 ? count.index % length(var.zones) + 1 : null
+  zone = length(var.zones) > 0 ? var.zones[count.index % length(var.zones)] : null
 
   allow_extension_operations        = true
   encryption_at_host_enabled        = var.disk_encryption.enabled == true && (var.disk_encryption.config.type == "host" || var.disk_encryption.config.type == "des+")
@@ -112,7 +112,7 @@ module "windows_disks" {
 
   tags = var.tags
 
-  zone = length(var.zones) > 0 ? count.index % length(var.zones) + 1 : null
+  zone = length(var.zones) > 0 ? var.zones[count.index % length(var.zones)] : null
 }
 
 
