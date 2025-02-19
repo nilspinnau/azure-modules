@@ -17,11 +17,14 @@ resource "azurerm_network_watcher_flow_log" "vnet_flow_logs" {
   enabled = var.flow_logs.enabled
   version = 2
 
-  traffic_analytics {
-    enabled               = var.flow_logs.config.traffic_analytics.enabled
-    workspace_resource_id = var.flow_logs.config.traffic_analytics.workspace.resource_id
-    workspace_id          = var.flow_logs.config.traffic_analytics.workspace.workspace_id
-    workspace_region      = var.flow_logs.config.traffic_analytics.workspace.location
+  dynamic "traffic_analytics" {
+    for_each = var.flow_logs.config.traffic_analytics != null ? [var.flow_logs.config.traffic_analytics] : []
+    content {
+      enabled               = traffoc_analytics.value.enabled
+      workspace_resource_id = traffoc_analytics.value.workspace.resource_id
+      workspace_id          = traffoc_analytics.value.workspace.workspace_id
+      workspace_region      = traffoc_analytics.value.workspace.location
+    }
   }
 
   retention_policy {
