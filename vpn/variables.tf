@@ -54,21 +54,21 @@ variable "generation" {
 }
 
 variable "ip_configuration" {
-  type = set(object({
-    name                          = optional(string, "")
+  type = map(object({
     private_ip_address_allocation = optional(string, null)
     public_ip = object({
       sku                     = optional(string, "Standard")
       sku_tier                = optional(string, "Regional")
       zones                   = optional(list(string), [])
       allocation_method       = optional(string, "Static")
-      ddos_protection_plan_id = optional(string, "")
+      ddos_protection_plan_id = optional(string, null)
       idle_timeout_in_minutes = optional(number, 4)
       ip_version              = optional(string, "IPv4")
       public_ip_prefix_id     = optional(string, null)
       domain_name_label       = optional(string, null)
       reverse_fqdn            = optional(string, null)
     })
+    subnet_id = optional(string, null)
   }))
 }
 
@@ -109,22 +109,26 @@ variable "bgp_settings" {
 
 variable "custom_route" {
   type = object({
-    address_prefixes = list(string)
+    address_prefixes = set(string)
   })
-  default = null
+  default = {
+    address_prefixes = []
+  }
+  nullable = true
 }
 
 variable "connection" {
-  type = object({
-    name                            = string
+  type = map(object({
     type                            = string
-    connection_mode                 = optional(string, "")
+    connection_mode                 = optional(string, "Default")
     enable_bgp                      = optional(bool, false)
-    shared_key                      = optional(string, "")
-    bi_directional_enabled          = optional(bool, true)
-    peer_virtual_network_gateway_id = optional(string, "")
-  })
-  default = null
+    shared_key                      = string
+    bi_directional_enabled          = optional(bool, false)
+    peer_virtual_network_gateway_id = string
+    remote_location = string
+    resource_group_name = string
+  }))
+  default = {}
 }
 
 variable "log_analytics_workspace_id" {

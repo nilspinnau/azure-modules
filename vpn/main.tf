@@ -1,13 +1,13 @@
 resource "azurerm_public_ip" "default" {
   for_each = var.ip_configuration
 
-  name                = "pip-vpn-${var.resource_suffix}"
+  name                = "pip-vpn-${each.key}-${var.resource_suffix}"
   location            = var.location
   resource_group_name = var.resource_group_name
 
   allocation_method = each.value.public_ip.allocation_method
   sku               = each.value.public_ip.sku
-  sku_tier          = each.value.public_ip.sku_tiers
+  sku_tier          = each.value.public_ip.sku_tier
 
   ddos_protection_plan_id = each.value.public_ip.ddos_protection_plan_id
   idle_timeout_in_minutes = each.value.public_ip.idle_timeout_in_minutes
@@ -41,9 +41,9 @@ resource "azurerm_virtual_network_gateway" "default" {
     content {
       # Mandatory attributes
       subnet_id            = ip_configuration.value.subnet_id
-      public_ip_address_id = ip_configuration.value.public_ip_address_id
+      public_ip_address_id = azurerm_public_ip.default[ip_configuration.key].id
       # Optional attributes
-      name                          = try(ip_configuration.value.name, null)
+      name                          = try(ip_configuration.key, null)
       private_ip_address_allocation = try(ip_configuration.value.private_ip_address_allocation, null)
     }
   }
@@ -80,28 +80,24 @@ resource "azurerm_virtual_network_gateway" "default" {
     }
   }
 
-  dynamic "bgp_settings" {
-    for_each = var.bgp_settings
-    content {
-      # Optional attributes
-      asn         = try(bgp_settings.value.asn, null)
-      peer_weight = try(bgp_settings.value.peer_weight, null)
 
-      dynamic "peering_addresses" {
-        for_each = try(bgp_settings.value.peering_addresses, [])
-        content {
-          ip_configuration_name = try(peering_addresses.value.ip_configuration_name, null)
-          apipa_addresses       = try(peering_addresses.value.apipa_addresses, null)
-        }
+  bgp_settings {
+    asn         = try(var.bgp_settings.asn, null)
+    peer_weight = try(var.bgp_settings.peer_weight, null)
+
+    dynamic "peering_addresses" {
+      for_each = try(var.bgp_settings.peering_addresses, [])
+      content {
+        ip_configuration_name = try(peering_addresses.value.ip_configuration_name, null)
+        apipa_addresses       = try(peering_addresses.value.apipa_addresses, null)
       }
     }
   }
 
   dynamic "custom_route" {
-    for_each = var.custom_route
+    for_each = length(var.custom_route.address_prefixes) > 0 ? [var.custom_route] : []
     content {
-      # Optional attributes
-      address_prefixes = try(custom_route.value.address_prefixes, null)
+      address_prefixes = try(var.custom_route.address_prefixes, null)
     }
   }
 
@@ -110,40 +106,43 @@ resource "azurerm_virtual_network_gateway" "default" {
 
 
 resource "azurerm_virtual_network_gateway_connection" "direction_in" {
-  count = var.connection != null ? 1 : 0
+  for_each = var.connection
 
-  name                = var.connection.name
+  name                = each.key
   location            = var.location
   resource_group_name = var.resource_group_name
 
   virtual_network_gateway_id      = azurerm_virtual_network_gateway.default.id
-  peer_virtual_network_gateway_id = var.connection.bi_directional_enabled == true ? var.connection.peer_virtual_network_gateway_id : null
+  peer_virtual_network_gateway_id = each.value.bi_directional_enabled == true ? each.value.peer_virtual_network_gateway_id : null
   local_network_gateway_id        = var.local_network_gateway != null ? azurerm_local_network_gateway.default.0.id : null
-  type                            = var.connection.type
+  type                            = each.value.type
 
-  connection_mode = var.connection.connection_mode
-  enable_bgp      = var.connection.enable_bgp
-  shared_key      = var.connection.shared_key
+  connection_mode = each.value.connection_mode
+  enable_bgp      = each.value.enable_bgp
+  shared_key      = each.value.shared_key
 
   tags = var.tags
 }
 
 
 resource "azurerm_virtual_network_gateway_connection" "direction_out" {
-  count = var.connection != null && var.connection.bi_directional_enabled == true ? 1 : 0
+  for_each = { 
+    for k, v in var.connection: k => v 
+    if v.bi_directional_enabled
+  }
 
-  name                = "${var.connection.name}-reverse"
-  location            = var.location
-  resource_group_name = var.resource_group_name
+  name                = "${each.key}-reverse"
+  location            = each.value.remote_location
+  resource_group_name = each.value.resource_group_name
 
-  virtual_network_gateway_id      = var.connection.peer_virtual_network_gateway_id
+  virtual_network_gateway_id      = each.value.peer_virtual_network_gateway_id
   peer_virtual_network_gateway_id = azurerm_virtual_network_gateway.default.id
-  type                            = var.connection.type
+  type                            = each.value.type
 
 
-  connection_mode = var.connection.connection_mode
-  enable_bgp      = var.connection.enable_bgp
-  shared_key      = var.connection.shared_key
+  connection_mode = each.value.connection_mode
+  enable_bgp      = each.value.enable_bgp
+  shared_key      = each.value.shared_key
 
   tags = var.tags
 }
