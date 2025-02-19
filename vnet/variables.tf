@@ -14,7 +14,7 @@ variable "resource_suffix" {
 }
 
 variable "dns_servers" {
-  type    = list(string)
+  type    = set(string)
   default = []
 }
 
@@ -49,8 +49,7 @@ variable "flow_logs" {
 }
 
 variable "subnets" {
-  type = list(object({
-    name               = string
+  type = map(object({
     newbit             = number
     attach_route_table = optional(bool, true)
     service_endpoints  = optional(list(string), [])

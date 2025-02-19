@@ -17,13 +17,13 @@ resource "azurerm_virtual_network" "default" {
 
 locals {
   newbits         = [for subnet in var.subnets : subnet.newbit]
-  subnet_prefixes = zipmap([for subnet in var.subnets : subnet.name], cidrsubnets(var.address_space, local.newbits...))
+  subnet_prefixes = zipmap([for k, subnet in var.subnets : k], cidrsubnets(var.address_space, local.newbits...))
 }
 
 resource "azurerm_subnet" "default" {
-  for_each = { for k, subnet in var.subnets : subnet.name => subnet }
+  for_each = { for k, subnet in var.subnets : k => subnet }
 
-  name                = "snet-${each.value.name}"
+  name                = each.key
   resource_group_name = var.resource_group_name
 
   virtual_network_name = azurerm_virtual_network.default.name
@@ -52,7 +52,7 @@ resource "azurerm_subnet" "default" {
 
 resource "azurerm_public_ip" "pip" {
   for_each = {
-    for k, subnet in var.subnets : subnet.name => subnet
+    for k, subnet in var.subnets : k => subnet
     if subnet.nat_gateway == true
   }
 
@@ -65,7 +65,7 @@ resource "azurerm_public_ip" "pip" {
 
 resource "azurerm_nat_gateway" "nat" {
   for_each = {
-    for k, subnet in var.subnets : subnet.name => subnet
+    for k, subnet in var.subnets : k => subnet
     if subnet.nat_gateway == true
   }
   name                = "nat-${each.value.name}-${var.resource_suffix}"
@@ -75,7 +75,7 @@ resource "azurerm_nat_gateway" "nat" {
 
 resource "azurerm_nat_gateway_public_ip_association" "pip" {
   for_each = {
-    for k, subnet in var.subnets : subnet.name => subnet
+    for k, subnet in var.subnets : k => subnet
     if subnet.nat_gateway == true
   }
   nat_gateway_id       = azurerm_nat_gateway.nat[each.key].id
@@ -85,7 +85,7 @@ resource "azurerm_nat_gateway_public_ip_association" "pip" {
 
 resource "azurerm_subnet_nat_gateway_association" "association" {
   for_each = {
-    for k, subnet in var.subnets : subnet.name => subnet
+    for k, subnet in var.subnets : k => subnet
     if subnet.nat_gateway == true
   }
   nat_gateway_id = azurerm_nat_gateway.nat[each.key].id
