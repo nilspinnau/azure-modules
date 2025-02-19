@@ -4,6 +4,7 @@ data "azurerm_network_watcher" "nw" {
 }
 
 resource "azurerm_network_watcher_flow_log" "vnet_flow_logs" {
+  count = var.flow_logs != null ? 1 : 0
 
   name     = "logs-${azurerm_virtual_network.default.name}"
   location = var.location
@@ -12,13 +13,13 @@ resource "azurerm_network_watcher_flow_log" "vnet_flow_logs" {
   network_watcher_name = data.azurerm_network_watcher.nw.name
 
   target_resource_id = azurerm_virtual_network.default.id
-  storage_account_id = var.flow_logs.config.storage_account_id
+  storage_account_id = var.flow_logs.storage_account_id
 
-  enabled = var.flow_logs.enabled
+  enabled = true
   version = 2
 
   dynamic "traffic_analytics" {
-    for_each = var.flow_logs.config.traffic_analytics != null ? [var.flow_logs.config.traffic_analytics] : []
+    for_each = try(var.flow_logs.traffic_analytics != null, false) ? [var.flow_logs.traffic_analytics] : []
     content {
       enabled               = traffoc_analytics.value.enabled
       workspace_resource_id = traffoc_analytics.value.workspace.resource_id

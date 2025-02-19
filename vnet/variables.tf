@@ -30,22 +30,16 @@ variable "address_space" {
 
 variable "flow_logs" {
   type = object({
-    enabled = optional(bool, false)
-    config = optional(object({
-      storage_account_id = string
-      traffic_analytics = optional(object({
-        enabled = optional(bool, false)
-        workspace = optional(object({
-          workspace_id = string
-          location     = string
-          resource_id  = string
-        }))
-      }))
+    storage_account_id = string
+    traffic_analytics = optional(object({
+      enabled               = optional(bool, false)
+      workspace_id          = string
+      workspace_region      = string
+      workspace_resource_id = string
     }))
   })
-  default = {
-    enabled = false
-  }
+  default  = null
+  nullable = true
 }
 
 variable "subnets" {
@@ -91,15 +85,12 @@ variable "dns_zone_links" {
 variable "route_table" {
   type = object({
     enabled = optional(bool, true)
-    routes = optional(list(object({
+    routes = optional(map(object({
       address_prefix         = string
-      name                   = string
       next_hop_type          = string
       next_hop_in_ip_address = optional(string)
-    })), [])
+    })), {})
   })
-  default = {
-    enabled = true
-    routes  = []
-  }
+  default  = {}
+  nullable = false
 }

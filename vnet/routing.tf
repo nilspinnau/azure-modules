@@ -15,9 +15,9 @@ resource "azurerm_route_table" "default" {
 
 
 resource "azurerm_route" "default" {
-  for_each = { for v in var.route_table.routes : v.name => v if var.route_table.enabled == true }
+  for_each = { for k, v in var.route_table.routes : k => v if var.route_table.enabled == true }
 
-  name                = each.value.name
+  name                = each.key
   resource_group_name = var.resource_group_name
   route_table_name    = azurerm_route_table.default.0.name
 
@@ -29,7 +29,7 @@ resource "azurerm_route" "default" {
 
 resource "azurerm_subnet_route_table_association" "default" {
   for_each = {
-    for subnet in var.subnets : subnet.name => subnet
+    for k, subnet in var.subnets : k => subnet
     if subnet.attach_route_table == true && var.route_table.enabled == true
   }
 
