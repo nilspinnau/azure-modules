@@ -21,10 +21,10 @@ resource "azurerm_network_watcher_flow_log" "vnet_flow_logs" {
   dynamic "traffic_analytics" {
     for_each = try(var.flow_logs.traffic_analytics != null, false) ? [var.flow_logs.traffic_analytics] : []
     content {
-      enabled               = traffoc_analytics.value.enabled
-      workspace_resource_id = traffoc_analytics.value.workspace.resource_id
-      workspace_id          = traffoc_analytics.value.workspace.workspace_id
-      workspace_region      = traffoc_analytics.value.workspace.location
+      enabled               = traffic_analytics.value.enabled
+      workspace_resource_id = traffic_analytics.value.workspace_resource_id
+      workspace_id          = traffic_analytics.value.workspace_id
+      workspace_region      = traffic_analytics.value.workspace_region
     }
   }
 
