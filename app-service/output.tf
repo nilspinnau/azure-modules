@@ -9,10 +9,10 @@ output "app_service_plan" {
 }
 
 output "app_service_environment" {
-  value = var.service_plan.environment.enabled == true ? {
-    name                = azurerm_app_service_environment_v3.default.name
-    id                  = azurerm_app_service_environment_v3.default.id
-    subnet_id           = azurerm_app_service_environment_v3.default.subnet_id
-    resource_group_name = azurerm_app_service_environment_v3.default.resource_group_name
+  value = var.service_plan.environment != null ? {
+    name                = azurerm_app_service_environment_v3.default[0].name
+    id                  = azurerm_app_service_environment_v3.default[0].id
+    subnet_id           = azurerm_app_service_environment_v3.default[0].subnet_id
+    resource_group_name = azurerm_app_service_environment_v3.default[0].resource_group_name
   } : null
 }

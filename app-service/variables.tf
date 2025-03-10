@@ -27,18 +27,12 @@ variable "service_plan" {
     sku                          = optional(string, "EP1")
     worker_count                 = optional(number, 1)
     environment = optional(object({
-      enabled = optional(bool, false)
-      config = object({
-        virtual_network_id           = optional(string, "")
-        address_prefix               = optional(string, "")
-        subnet_id                    = optional(string, "")
-        internal_load_balancing_mode = optional(string, "None")
-        cluster_settings = optional(set(object({
-          name  = string
-          value = string
-        })), [])
-      })
-    }), {})
+      virtual_network_id           = string
+      address_prefix               = string
+      subnet_id                    = string
+      internal_load_balancing_mode = optional(string, "Web, Publishing")
+      cluster_settings             = map(string)
+    }), null)
   })
 
   validation {
