@@ -247,6 +247,9 @@ resource "azurerm_site_recovery_replication_recovery_plan" "default" {
     }
   }
 
+  shutdown_recovery_group {
+  }
+
   boot_recovery_group {
     replicated_protected_items = [for vm in azurerm_site_recovery_replicated_vm.default : vm.id]
   }
