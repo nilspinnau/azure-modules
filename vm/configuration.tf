@@ -3,7 +3,7 @@
 resource "azurerm_policy_virtual_machine_configuration_assignment" "default" {
   for_each = {
     for k, v in var.machine_configurations : k => v
-    if local.vm != null
+    if var.scale_set.enabled == false
   }
 
 

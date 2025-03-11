@@ -186,7 +186,7 @@ resource "time_static" "current" {
 }
 
 resource "azurerm_virtual_machine_extension" "performancediagnostics" {
-  count = try(var.monitoring.config.performance_diagnostics == true, false) && local.vm != null ? 1 : 0
+  count = try(var.monitoring.config.performance_diagnostics == true, false) && var.scale_set.enabled == false ? 1 : 0
 
   name                       = "AzurePerformanceDiagnostics"
   publisher                  = "Microsoft.Azure.Performance.Diagnostics"
@@ -250,7 +250,7 @@ resource "azurerm_virtual_machine_extension" "vm_extensions" {
 
 # we have to wait for the disks to be assigned so that we can apply azure disk encryption
 resource "time_sleep" "configuration_apply" {
-  count           = var.disk_encryption.enabled == true && var.disk_encryption.config.type == "ade" ? 1 : 0
+  count           = var.disk_encryption.type == "ade" ? 1 : 0
   create_duration = "5m"
 
   depends_on = [
@@ -261,7 +261,7 @@ resource "time_sleep" "configuration_apply" {
 
 # https://learn.microsoft.com/en-us/azure/virtual-machines/disk-encryption-overview#comparison
 resource "azurerm_virtual_machine_extension" "azure_disk_encryption" {
-  count = var.disk_encryption.enabled == true && var.disk_encryption.config.type == "ade" && local.vm != null ? 1 : 0
+  count = var.disk_encryption.type == "ade" && var.scale_set.enabled == false ? 1 : 0
 
   name                       = "AzureDiskEncryption"
   virtual_machine_id         = local.vm.id
@@ -274,8 +274,8 @@ resource "azurerm_virtual_machine_extension" "azure_disk_encryption" {
   {
     "EncryptionOperation": "EnableEncryption",
     "KeyEncryptionAlgorithm": "RSA-OAEP-256",
-    "KeyVaultURL": "${var.disk_encryption.config.vault_uri}",
-    "KeyVaultResourceId": "${var.disk_encryption.config.vault_id}",
+    "KeyVaultURL": "${var.disk_encryption.vault_uri}",
+    "KeyVaultResourceId": "${var.disk_encryption.vault_id}",
     "VolumeType": "All"
   }
   SETTINGS

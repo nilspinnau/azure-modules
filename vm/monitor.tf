@@ -1,6 +1,6 @@
 
 resource "azurerm_monitor_data_collection_rule_association" "vminsights" {
-  count = var.monitoring.enabled == true && try(var.monitoring.config.vm_insights != null, false) && var.automanage.enabled == false && local.vm != null ? 1 : 0
+  count = var.monitoring.enabled == true && try(var.monitoring.config.vm_insights != null, false) && var.automanage.enabled == false && var.scale_set.enabled == false ? 1 : 0
 
   name                    = "VMInsights"
   target_resource_id      = local.vm.id
@@ -14,7 +14,7 @@ resource "azurerm_monitor_data_collection_rule_association" "vminsights" {
 }
 
 resource "azurerm_monitor_data_collection_rule_association" "changetracking" {
-  count = var.monitoring.enabled == true && try(var.monitoring.config.change_tracking != null, false) && var.automanage.enabled == false && local.vm != null ? 1 : 0
+  count = var.monitoring.enabled == true && try(var.monitoring.config.change_tracking != null, false) && var.automanage.enabled == false && var.scale_set.enabled == false ? 1 : 0
 
   name                    = "ChangeTracking"
   target_resource_id      = local.vm.id

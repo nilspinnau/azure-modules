@@ -14,7 +14,7 @@ resource "azurerm_windows_virtual_machine" "win_vm" {
   zone = var.zone
 
   allow_extension_operations        = true
-  encryption_at_host_enabled        = var.disk_encryption.enabled == true && (var.disk_encryption.config.type == "host" || var.disk_encryption.config.type == "des+")
+  encryption_at_host_enabled        = (var.disk_encryption.type == "host" || var.disk_encryption.type == "des+")
   vm_agent_platform_updates_enabled = true
 
 
@@ -34,7 +34,7 @@ resource "azurerm_windows_virtual_machine" "win_vm" {
   bypass_platform_safety_checks_on_user_schedule_enabled = var.patching.patch_schedule.schedule_name != ""
 
   size                  = var.sku
-  network_interface_ids = [for nic in azurerm_network_interface.default : nic.id]
+  network_interface_ids = local.network_interface_ids
 
   winrm_listener {
     protocol = "Http"
@@ -52,7 +52,7 @@ resource "azurerm_windows_virtual_machine" "win_vm" {
     caching                = "ReadWrite"
     storage_account_type   = var.disk_storage_type
     disk_size_gb           = var.os_disk_size
-    disk_encryption_set_id = var.disk_encryption.enabled == true && strcontains(var.disk_encryption.config.type, "des") ? var.disk_encryption.config.disk_encryption_set_id : null
+    disk_encryption_set_id = var.disk_encryption.disk_encryption_set_id
   }
 
 
@@ -96,7 +96,7 @@ module "windows_disks" {
   source = "./modules/disks"
 
   for_each = {
-    for k, disk in var.additional_disks : k => disk
+    for lun, disk in var.additional_disks : lun => disk
     if local.is_windows == true && var.scale_set.enabled == false
   }
 
@@ -108,8 +108,8 @@ module "windows_disks" {
 
   lun = each.key
 
-  disk_encryption_set_id = var.disk_encryption.enabled == true && strcontains(var.disk_encryption.config.type, "des") ? var.disk_encryption.config.disk_encryption_set_id : null
-  disk_encryption_type   = var.disk_encryption.config.type
+  disk_encryption_set_id = var.disk_encryption.disk_encryption_set_id
+  disk_encryption_type   = var.disk_encryption.type
 
   tags = var.tags
 
@@ -118,7 +118,7 @@ module "windows_disks" {
 
 
 resource "azurerm_windows_virtual_machine_scale_set" "win_vmss" {
-  count = local.is_windows == true && var.scale_set.enabled == true && var.scale_set.config.is_flexible_orchestration == false ? 1 : 0
+  count = local.is_windows == true && var.scale_set.enabled == true && var.scale_set.is_flexible_orchestration == false ? 1 : 0
 
   name                 = "vmss-${var.name}-${var.resource_suffix}"
   computer_name_prefix = var.name
@@ -130,7 +130,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "win_vmss" {
   extension_operations_enabled = true
 
   automatic_instance_repair {
-    enabled      = var.scale_set.config.automatic_instance_repair
+    enabled      = var.scale_set.automatic_instance_repair
     grace_period = "PT30M"
   }
 
@@ -147,8 +147,9 @@ resource "azurerm_windows_virtual_machine_scale_set" "win_vmss" {
 
   enable_automatic_updates = var.automatic_updates_enabled
 
-  vtpm_enabled        = var.vtpm_enabled
-  secure_boot_enabled = var.secure_boot_enabled
+  vtpm_enabled               = var.vtpm_enabled
+  secure_boot_enabled        = var.secure_boot_enabled
+  encryption_at_host_enabled = (var.disk_encryption.type == "host" || var.disk_encryption.type == "des+")
 
   scale_in {
     force_deletion_enabled = false
@@ -180,8 +181,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "win_vmss" {
   sku       = var.sku
   instances = 1
 
-  zone_balance       = var.scale_set.config.zone_balance
-  zones              = var.scale_set.config.zones
+  zone_balance       = var.scale_set.zone_balance
+  zones              = var.scale_set.zones
   provision_vm_agent = true
 
   dynamic "extension" {
@@ -208,7 +209,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "win_vmss" {
     }
   }
 
-  encryption_at_host_enabled = var.disk_encryption.enabled == true && (var.disk_encryption.config.type == "host" || var.disk_encryption.config.type == "des+")
 
   winrm_listener {
     protocol = "Http"
@@ -225,7 +225,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "win_vmss" {
     caching                = "ReadWrite"
     storage_account_type   = var.disk_storage_type
     disk_size_gb           = var.os_disk_size
-    disk_encryption_set_id = var.disk_encryption.enabled == true && strcontains(var.disk_encryption.config.type, "des") ? var.disk_encryption.config.disk_encryption_set_id : null
+    disk_encryption_set_id = var.disk_encryption.disk_encryption_set_id
   }
 
   source_image_reference {

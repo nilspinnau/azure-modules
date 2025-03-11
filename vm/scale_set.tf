@@ -1,36 +1,36 @@
 resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
-  count = var.scale_set.enabled == true && var.scale_set.config.is_flexible_orchestration == true ? 1 : 0
+  count = var.scale_set.enabled == true && var.scale_set.is_flexible_orchestration == true ? 1 : 0
 
   name                         = "vmss-${var.resource_suffix}-${var.name}"
   resource_group_name          = var.resource_group_name
   extension_operations_enabled = true
   location                     = var.location
 
-  platform_fault_domain_count = length(var.scale_set.config.zones) > 0 ? 1 : 2
+  platform_fault_domain_count = length(var.scale_set.zones) > 0 ? 1 : 2
   instances                   = 1
-  sku_name                    = var.scale_set.config.sku_profile != null ? "Mix" : var.sku
+  sku_name                    = var.scale_set.sku_profile != null ? "Mix" : var.sku
 
   dynamic "sku_profile" {
-    for_each = var.scale_set.config.sku_profile != null ? [var.scale_set.config.sku_profile] : []
+    for_each = var.scale_set.sku_profile != null ? [var.scale_set.sku_profile] : []
     content {
       allocation_strategy = sku_profile.value.allocation_strategy
       vm_sizes            = sku_profile.value.vm_sizes
     }
   }
 
-  zone_balance = var.scale_set.config.zone_balance
-  zones        = var.scale_set.config.zones
+  zone_balance = var.scale_set.zone_balance
+  zones        = var.scale_set.zones
 
   license_type = var.license_type
   priority     = "Regular"
 
-  encryption_at_host_enabled = var.disk_encryption.enabled == true && (var.disk_encryption.config.type == "host" || var.disk_encryption.config.type == "des+")
+  encryption_at_host_enabled = (var.disk_encryption.type == "host" || var.disk_encryption.type == "des+")
 
   # eviction_policy = "Delete" # requires spot priority
 
   automatic_instance_repair {
-    enabled      = var.scale_set.config.automatic_instance_repair
-    grace_period = var.scale_set.config.automatic_instance_repair ? "PT30M" : null
+    enabled      = var.scale_set.automatic_instance_repair
+    grace_period = var.scale_set.automatic_instance_repair ? "PT30M" : null
   }
 
   dynamic "network_interface" {
@@ -56,7 +56,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   }
 
   dynamic "os_disk" {
-    for_each = var.scale_set.config.automatic_scaling == true ? [1] : []
+    for_each = var.scale_set.automatic_scaling == true ? [1] : []
     content {
       caching                = "ReadWrite"
       storage_account_type   = var.disk_storage_type
@@ -74,7 +74,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   }
 
   dynamic "source_image_reference" {
-    for_each = var.scale_set.config.automatic_scaling == true ? [1] : []
+    for_each = var.scale_set.automatic_scaling == true ? [1] : []
     content {
       publisher = var.source_image_reference.publisher
       offer     = var.source_image_reference.offer
@@ -91,7 +91,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   }
 
   dynamic "extension" {
-    for_each = { for k, extension in local.extensions : k => extension if var.scale_set.config.automatic_scaling == true }
+    for_each = {
+      for k, extension in local.extensions : k => extension
+      if var.scale_set.automatic_scaling == true
+    }
     content {
       auto_upgrade_minor_version_enabled = true
       publisher                          = extension.value.publisher
@@ -103,7 +106,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   }
 
   dynamic "data_disk" {
-    for_each = { for k, disk in var.additional_disks : k => disk if var.scale_set.config.automatic_scaling == true }
+    for_each = {
+      for k, disk in local.additional_disks : k => disk
+      if var.scale_set.automatic_scaling == true
+    }
     content {
       lun                    = data_disk.value.lun
       caching                = data_disk.value.caching
@@ -115,7 +121,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   }
 
   dynamic "os_profile" {
-    for_each = var.scale_set.config.automatic_scaling == true ? [1] : []
+    for_each = var.scale_set.automatic_scaling == true ? [1] : []
     content {
       dynamic "windows_configuration" {
         for_each = local.is_windows == true ? [1] : []
@@ -152,12 +158,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
 }
 
 resource "azurerm_monitor_autoscale_setting" "autoscalesetting" {
-  count = var.scale_set.enabled == true && var.scale_set.config.automatic_scaling == true ? 1 : 0
+  count = var.scale_set.enabled == true && var.scale_set.automatic_scaling == true ? 1 : 0
 
   name                = "autoscale_cpu_percentage"
   resource_group_name = var.resource_group_name
   location            = var.location
-  target_resource_id  = var.scale_set.config.is_flexible_orchestration == true ? azurerm_orchestrated_virtual_machine_scale_set.vmss.0.id : (local.is_windows == true ? azurerm_windows_virtual_machine_scale_set.win_vmss.0.id : azurerm_linux_virtual_machine_scale_set.linux_vmss.0.id)
+  target_resource_id  = var.scale_set.is_flexible_orchestration == true ? azurerm_orchestrated_virtual_machine_scale_set.vmss.0.id : (local.is_windows == true ? azurerm_windows_virtual_machine_scale_set.win_vmss.0.id : azurerm_linux_virtual_machine_scale_set.linux_vmss.0.id)
 
   enabled = true
 
@@ -173,7 +179,7 @@ resource "azurerm_monitor_autoscale_setting" "autoscalesetting" {
     rule {
       metric_trigger {
         metric_name              = "Percentage CPU"
-        metric_resource_id       = var.scale_set.config.is_flexible_orchestration == true ? azurerm_orchestrated_virtual_machine_scale_set.vmss.0.id : (local.is_windows == true ? azurerm_windows_virtual_machine_scale_set.win_vmss.0.id : azurerm_linux_virtual_machine_scale_set.linux_vmss.0.id)
+        metric_resource_id       = var.scale_set.is_flexible_orchestration == true ? azurerm_orchestrated_virtual_machine_scale_set.vmss.0.id : (local.is_windows == true ? azurerm_windows_virtual_machine_scale_set.win_vmss.0.id : azurerm_linux_virtual_machine_scale_set.linux_vmss.0.id)
         time_grain               = "PT1M"
         statistic                = "Average"
         time_window              = "PT5M"
@@ -195,7 +201,7 @@ resource "azurerm_monitor_autoscale_setting" "autoscalesetting" {
     rule {
       metric_trigger {
         metric_name              = "Percentage CPU"
-        metric_resource_id       = var.scale_set.config.is_flexible_orchestration == true ? azurerm_orchestrated_virtual_machine_scale_set.vmss.0.id : (local.is_windows == true ? azurerm_windows_virtual_machine_scale_set.win_vmss.0.id : azurerm_linux_virtual_machine_scale_set.linux_vmss.0.id)
+        metric_resource_id       = var.scale_set.is_flexible_orchestration == true ? azurerm_orchestrated_virtual_machine_scale_set.vmss.0.id : (local.is_windows == true ? azurerm_windows_virtual_machine_scale_set.win_vmss.0.id : azurerm_linux_virtual_machine_scale_set.linux_vmss.0.id)
         time_grain               = "PT1M"
         statistic                = "Average"
         time_window              = "PT5M"

@@ -94,18 +94,16 @@ variable "application_gateway_backend_address_pool_ids" {
 
 variable "scale_set" {
   type = object({
-    enabled = optional(bool, false)
-    config = optional(object({
-      automatic_scaling         = optional(bool, true)
-      zone_balance              = optional(bool, true)
-      zones                     = optional(set(string), ["1", "2", "3"])
-      automatic_instance_repair = optional(bool, false)
-      is_flexible_orchestration = optional(bool, true)
-      sku_profile = optional(object({
-        allocation_strategy = optional(string, "Lowest")
-        vm_sizes            = optional(set(string), [])
-      }), null)
-    }), {})
+    enabled                   = optional(bool, false)
+    automatic_scaling         = optional(bool, true)
+    zone_balance              = optional(bool, true)
+    zones                     = optional(set(string), ["1", "2", "3"])
+    automatic_instance_repair = optional(bool, false)
+    is_flexible_orchestration = optional(bool, true)
+    sku_profile = optional(object({
+      allocation_strategy = optional(string, "Lowest")
+      vm_sizes            = optional(set(string), [])
+    }), null)
   })
   default = {
     enabled = false
@@ -238,17 +236,13 @@ variable "machine_configurations" {
 
 variable "disk_encryption" {
   type = object({
-    enabled = optional(bool, true)
-    config = optional(object({
-      type                   = optional(string, "host") # possible ade, host, des, des+ = des + host
-      vault_id               = optional(string, null)
-      vault_uri              = optional(string, null)
-      disk_encryption_set_id = optional(string, null)
-    }), {})
+    type                   = optional(string, "none") # possible ade, host, des, des+ = des + host, none
+    vault_id               = optional(string, null)
+    vault_uri              = optional(string, null)
+    disk_encryption_set_id = optional(string, null)
   })
-  default = {
-    enabled = false
-  }
+  default  = {}
+  nullable = false
 }
 
 variable "patching" {

@@ -16,7 +16,7 @@ resource "azurerm_linux_virtual_machine" "linux_vm" {
   zone = var.zone
 
   allow_extension_operations        = true
-  encryption_at_host_enabled        = var.disk_encryption.enabled == true && (var.disk_encryption.config.type == "host" || var.disk_encryption.config.type == "des+")
+  encryption_at_host_enabled        = (var.disk_encryption.type == "host" || var.disk_encryption.type == "des+")
   vm_agent_platform_updates_enabled = true
 
   vtpm_enabled        = var.vtpm_enabled
@@ -29,7 +29,7 @@ resource "azurerm_linux_virtual_machine" "linux_vm" {
   patch_assessment_mode = var.patching.enabled == true ? var.patching.patch_assessment_mode : null
 
   size                  = var.sku
-  network_interface_ids = [for nic in azurerm_network_interface.default : nic.id]
+  network_interface_ids = local.network_interface_ids
 
   os_disk {
     name                 = "osdisk-${var.name}-${var.resource_suffix}"
@@ -74,7 +74,7 @@ module "linux_disks" {
 
 
   for_each = {
-    for k, disk in var.additional_disks : k => disk
+    for lun, disk in var.additional_disks : lun => disk
     if local.is_windows == false && var.scale_set.enabled == false
   }
 
@@ -86,8 +86,8 @@ module "linux_disks" {
 
   lun = each.key
 
-  disk_encryption_set_id = var.disk_encryption.enabled == true && strcontains(var.disk_encryption.config.type, "des") ? var.disk_encryption.config.disk_encryption_set_id : null
-  disk_encryption_type   = var.disk_encryption.config.type
+  disk_encryption_set_id = var.disk_encryption.disk_encryption_set_id
+  disk_encryption_type   = var.disk_encryption.type
 
   tags = var.tags
 
@@ -109,7 +109,7 @@ data "azurerm_managed_disk" "linux_os_disk" {
 
 
 resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
-  count = local.is_windows == false && var.scale_set.enabled == true && try(var.scale_set.config.is_flexible_orchestration, false) == false ? 1 : 0
+  count = local.is_windows == false && var.scale_set.enabled == true && try(var.scale_set.is_flexible_orchestration, false) == false ? 1 : 0
 
   name                 = "vmss-${var.name}-${var.resource_suffix}"
   computer_name_prefix = var.name
@@ -119,7 +119,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
   admin_password       = var.admin_password
 
   automatic_instance_repair {
-    enabled = var.scale_set.config.automatic_instance_repair
+    enabled = var.scale_set.automatic_instance_repair
   }
 
   upgrade_mode = var.patching.enabled == true ? "Automatic" : "Manual"
@@ -159,8 +159,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
   sku       = var.sku
   instances = 1
 
-  zone_balance                    = var.scale_set.config.zone_balance
-  zones                           = var.scale_set.config.zones
+  zone_balance                    = var.scale_set.zone_balance
+  zones                           = var.scale_set.zones
   provision_vm_agent              = true
   disable_password_authentication = false
 
@@ -188,7 +188,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
     }
   }
 
-  encryption_at_host_enabled = var.disk_encryption.enabled == true && (var.disk_encryption.config.type == "host" || var.disk_encryption.config.type == "des+")
+  encryption_at_host_enabled = (var.disk_encryption.type == "host" || var.disk_encryption.type == "des+")
 
   dynamic "boot_diagnostics" {
     for_each = var.monitoring.enabled == true ? [1] : []
@@ -201,7 +201,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
     caching                = "ReadWrite"
     storage_account_type   = var.disk_storage_type
     disk_size_gb           = var.os_disk_size
-    disk_encryption_set_id = var.disk_encryption.enabled == true && strcontains(var.disk_encryption.config.type, "des") ? var.disk_encryption.config.disk_encryption_set_id : null
+    disk_encryption_set_id = var.disk_encryption.disk_encryption_set_id
   }
 
   source_image_reference {
