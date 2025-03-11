@@ -93,31 +93,6 @@ resource "azurerm_storage_account" "default" {
     }
   }
 
-  dynamic "queue_properties" {
-    for_each = var.account_kind == "StorageV2" ? [1] : []
-    content {
-      logging {
-        delete                = true
-        read                  = true
-        write                 = true
-        version               = "1.0"
-        retention_policy_days = var.queue_retention_policy_days
-      }
-      hour_metrics {
-        enabled               = true
-        include_apis          = true
-        version               = "1.0"
-        retention_policy_days = var.queue_retention_policy_days
-      }
-      minute_metrics {
-        enabled               = true
-        include_apis          = true
-        version               = "1.0"
-        retention_policy_days = var.queue_retention_policy_days
-      }
-    }
-  }
-
   dynamic "network_rules" {
     for_each = var.public_access.network_rules != null ? [1] : []
     content {
@@ -139,7 +114,6 @@ resource "azurerm_advanced_threat_protection" "atp" {
 
   depends_on = [azurerm_storage_account.default]
 }
-
 
 resource "azapi_resource" "containers" {
   for_each = var.account_kind != "FileStorage" ? toset(var.containers_list) : []
