@@ -179,7 +179,7 @@ locals {
       }
       SETTINGS
     }
-  ] : [] : el if el != null], var.extensions)
+  ] : [] : el if el != null], [for ext in var.extensions : merge({ name = ext.name }, ext)])
 }
 
 resource "time_static" "current" {

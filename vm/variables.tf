@@ -38,7 +38,7 @@ variable "network_interface" {
     accelerated_networking_enabled = optional(bool, true)
     ip_configuration = map(object({
       subnet_id                                    = string
-      private_ip_address_allocation                = string
+      private_ip_address_allocation                = optional(string, "Dynamic")
       primary                                      = optional(bool, false)
       private_ip_address                           = optional(string, null)
       private_ip_address_version                   = optional(string, "IPv4")
