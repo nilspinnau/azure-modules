@@ -96,19 +96,6 @@ module "linux_disks" {
 }
 
 
-data "azurerm_managed_disk" "linux_os_disk" {
-  count = local.is_windows == false && var.scale_set.enabled == false ? 1 : 0
-
-  name                = "osdisk-${var.name}-${var.resource_suffix}"
-  resource_group_name = var.resource_group_name
-
-  depends_on = [
-    time_sleep.wait_vm_creation,
-    azurerm_linux_virtual_machine.linux_vm
-  ]
-}
-
-
 resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
   count = local.is_windows == false && var.scale_set.enabled == true && try(var.scale_set.is_flexible_orchestration, false) == false ? 1 : 0
 

@@ -79,19 +79,6 @@ resource "azurerm_windows_virtual_machine" "win_vm" {
   tags = var.tags
 }
 
-
-data "azurerm_managed_disk" "win_os_disk" {
-  count = local.is_windows == true && var.scale_set.enabled == false ? 1 : 0
-
-  name                = "osdisk-${var.name}-${var.resource_suffix}"
-  resource_group_name = var.resource_group_name
-
-  depends_on = [
-    time_sleep.wait_vm_creation,
-    azurerm_windows_virtual_machine.win_vm
-  ]
-}
-
 module "windows_disks" {
   source = "./modules/disks"
 

@@ -5,8 +5,11 @@ locals {
     for lun, disk in var.additional_disks : lun => merge(
       disk,
       {
-        disk_encryption_set_id = var.disk_encryption.enabled == true && strcontains(var.disk_encryption.config.type, "des") ? var.disk_encryption.config.disk_encryption_set_id : null
-        disk_encryption_type   = var.disk_encryption.config.type
+        id                     = null
+        lun                    = lun
+        name                   = "disk-${lun}-${var.name}-${var.resource_suffix}"
+        disk_encryption_set_id = var.disk_encryption.disk_encryption_set_id
+        disk_encryption_type   = var.disk_encryption.type
       }
     )
   }
@@ -24,17 +27,15 @@ locals {
 
   disks = var.scale_set.enabled == false ? (
     local.is_windows ?
-    module.windows_disks : module.linux_disks
+    { for lun, disk in module.windows_disks : lun => disk.disk } :
+    { for lun, disk in module.linux_disks : lun => disk.disk }
   ) : local.additional_disks
 
-  os_disk_temp = var.scale_set.enabled == false ? (
-    local.is_windows ?
-    data.azurerm_managed_disk.win_os_disk[0] :
-    data.azurerm_managed_disk.linux_os_disk[0]
-  ) : local.vm.os_disk[0]
   os_disk = merge(
-    local.os_disk_temp,
+    local.vm.os_disk[0],
     {
+      # a little hacky, but otherwise this seems difficult, id cannot be inferred for scale sets
+      id                   = try("${var.resource_group_id}/providers/Microsoft.Compute/disks/${local.vm.os_disk[0].name}", null)
       disk_encryption_type = var.disk_encryption.type
     }
   )
