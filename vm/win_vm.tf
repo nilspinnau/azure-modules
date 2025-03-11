@@ -95,14 +95,18 @@ data "azurerm_managed_disk" "win_os_disk" {
 module "windows_disks" {
   source = "./modules/disks"
 
-  count = local.is_windows == true && var.scale_set.enabled == false ? 1 : 0
+  for_each = {
+    for k, disk in var.additional_disks : k => disk
+    if local.is_windows == true && var.scale_set.enabled == false
+  }
 
   resource_group_name = var.resource_group_name
   location            = var.location
-  resource_suffix     = "${var.name}-${var.resource_suffix}"
-  virtual_machine_id  = azurerm_windows_virtual_machine.win_vm[count.index].id
+  resource_suffix     = "${each.key}-${var.name}-${var.resource_suffix}"
+  virtual_machine_id  = azurerm_windows_virtual_machine.win_vm[0].id
   disk_storage_type   = var.disk_storage_type
-  additional_disks    = var.additional_disks
+
+  lun = each.key
 
   disk_encryption_set_id = var.disk_encryption.enabled == true && strcontains(var.disk_encryption.config.type, "des") ? var.disk_encryption.config.disk_encryption_set_id : null
   disk_encryption_type   = var.disk_encryption.config.type
@@ -161,11 +165,11 @@ resource "azurerm_windows_virtual_machine_scale_set" "win_vmss" {
       dynamic "ip_configuration" {
         for_each = network_interface.value.ip_configuration
         content {
-          name                                         = network_interface.key
-          primary                                      = network_interface.value.primary
-          subnet_id                                    = network_interface.value.subnet_id
-          version                                      = network_interface.value.ip_version
-          application_security_group_ids               = var.application_security_group_ids
+          name                                         = ip_configuration.key
+          primary                                      = ip_configuration.value.primary
+          subnet_id                                    = ip_configuration.value.subnet_id
+          version                                      = ip_configuration.value.ip_version
+          application_security_group_ids               = ip_configuration.value.application_security_group_ids
           load_balancer_backend_address_pool_ids       = ip_configuration.value.load_balancer_backend_address_pool_ids
           application_gateway_backend_address_pool_ids = ip_configuration.value.application_gateway_backend_address_pool_ids
         }

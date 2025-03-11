@@ -128,15 +128,13 @@ variable "disk_storage_type" {
 
 
 variable "additional_disks" {
-  type = list(object({
-    lun           = number
-    letter        = string
+  type = map(object({
     disk_size     = number
     label         = optional(string, "Data")
     create_option = optional(string, "Empty")
     caching       = optional(string, "ReadWrite")
   }))
-  default  = []
+  default  = {}
   nullable = false
 }
 
@@ -162,13 +160,12 @@ variable "zone" {
 }
 
 variable "gallery_applications" {
-  type    = list(string)
+  type    = set(string)
   default = []
 }
 
 variable "extensions" {
-  type = list(object({
-    name                      = string
+  type = map(object({
     publisher                 = string
     type                      = string
     settings                  = optional(any, null)
@@ -176,15 +173,9 @@ variable "extensions" {
     automatic_upgrade_enabled = optional(bool, false)
     version                   = optional(string, "1.0")
   }))
+  default  = {}
   nullable = false
 }
-
-variable "ip_version" {
-  default  = "IPv4"
-  type     = string
-  nullable = false
-}
-
 
 variable "monitoring" {
   type = object({

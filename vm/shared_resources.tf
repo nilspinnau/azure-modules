@@ -186,17 +186,14 @@ resource "time_static" "current" {
 }
 
 resource "azurerm_virtual_machine_extension" "performancediagnostics" {
-  for_each = {
-    for k, vm in local.vm_ids : k => vm
-    if try(var.monitoring.config.performance_diagnostics == true, false)
-  }
+  count = try(var.monitoring.config.performance_diagnostics == true, false) ? 1 : 0
 
   name                       = "AzurePerformanceDiagnostics"
   publisher                  = "Microsoft.Azure.Performance.Diagnostics"
   type                       = "AzurePerformanceDiagnostics"
   auto_upgrade_minor_version = true
   automatic_upgrade_enabled  = false
-  virtual_machine_id         = each.value
+  virtual_machine_id         = local.vm.id
   type_handler_version       = "1.0"
 
   settings = <<SETTINGS
@@ -210,7 +207,7 @@ resource "azurerm_virtual_machine_extension" "performancediagnostics" {
     "xperfTrace": "x",
     "storPortTrace": "s",
     "requestTimeUtc":  "${time_static.current.rfc3339}",
-    "resourceId": "${each.value}"
+    "resourceId": "${local.vm.id}"
   }
   SETTINGS
   protected_settings = jsonencode({
@@ -228,18 +225,18 @@ resource "azurerm_virtual_machine_extension" "performancediagnostics" {
 # Any extension
 resource "azurerm_virtual_machine_extension" "vm_extensions" {
 
-  count = length(local.vm_ids) * length(local.extensions)
+  count = length(local.extensions)
 
-  name                       = local.extensions[count.index % length(local.extensions)].name
-  virtual_machine_id         = local.vm_ids[count.index % length(local.vm_ids)]
-  publisher                  = local.extensions[count.index % length(local.extensions)].publisher
-  type                       = local.extensions[count.index % length(local.extensions)].type
-  type_handler_version       = local.extensions[count.index % length(local.extensions)].version
+  name                       = local.extensions[count.index].name
+  virtual_machine_id         = local.vm.id
+  publisher                  = local.extensions[count.index].publisher
+  type                       = local.extensions[count.index].type
+  type_handler_version       = local.extensions[count.index].version
   auto_upgrade_minor_version = true
-  automatic_upgrade_enabled  = try(local.extensions[count.index % length(local.extensions)].automatic_upgrade_enabled, null)
+  automatic_upgrade_enabled  = try(local.extensions[count.index].automatic_upgrade_enabled, null)
 
-  settings           = try(local.extensions[count.index % length(local.extensions)].settings, null)
-  protected_settings = try(local.extensions[count.index % length(local.extensions)].protected_settings, null)
+  settings           = try(local.extensions[count.index].settings, null)
+  protected_settings = try(local.extensions[count.index].protected_settings, null)
 
 
   depends_on = [
@@ -264,13 +261,10 @@ resource "time_sleep" "configuration_apply" {
 
 # https://learn.microsoft.com/en-us/azure/virtual-machines/disk-encryption-overview#comparison
 resource "azurerm_virtual_machine_extension" "azure_disk_encryption" {
-  for_each = {
-    for k, vm in local.vm_ids : k => vm
-    if var.disk_encryption.enabled == true && var.disk_encryption.config.type == "ade"
-  }
+  count = var.disk_encryption.enabled == true && var.disk_encryption.config.type == "ade" ? 1 : 0
 
   name                       = "AzureDiskEncryption"
-  virtual_machine_id         = each.value
+  virtual_machine_id         = local.vm.id
   publisher                  = "Microsoft.Azure.Security"
   type                       = local.is_windows == true ? "AzureDiskEncryption" : "AzureDiskEncryption"
   type_handler_version       = "2.2"
@@ -321,15 +315,12 @@ resource "azurerm_virtual_machine_extension" "azure_disk_encryption" {
 
 # PATCHING
 resource "azapi_resource" "update_attach" {
-  for_each = {
-    for k, vm in local.vm_ids : k => vm
-    if var.patching.patch_schedule.schedule_name != ""
-  }
+  count = var.patching.patch_schedule.schedule_name != "" ? 1 : 0
 
   # https://learn.microsoft.com/de-de/azure/templates/microsoft.maintenance/configurationassignments?pivots=deployment-language-terraform
   type      = "Microsoft.Maintenance/configurationAssignments@2023-04-01"
   name      = "default"
-  parent_id = each.value
+  parent_id = local.vm.id
   location  = var.location
 
   body = jsonencode({
@@ -362,8 +353,8 @@ resource "azapi_resource" "update_attach" {
 
 
 resource "azurerm_virtual_machine_gallery_application_assignment" "default" {
-  count = length(local.vm_ids) * length(var.gallery_applications)
+  for_each = var.gallery_applications
 
-  gallery_application_version_id = var.gallery_applications[count.index % length(var.gallery_applications)]
-  virtual_machine_id             = local.vm_ids[count.index % length(local.vm_ids)]
+  gallery_application_version_id = each.value
+  virtual_machine_id             = local.is_windows ? azurerm_windows_virtual_machine.win_vm[0].id : azurerm_linux_virtual_machine.linux_vm[0].id
 }

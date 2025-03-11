@@ -21,7 +21,7 @@ variable "resource_suffix" {
 
 variable "disk_storage_type" {
   type    = string
-  default = "StandardSSD_LRS"
+  default = "Standard_LRS"
   validation {
     condition = contains([
       "Standard_LRS", "StandardSSD_ZRS", "Premium_LRS", "PremiumV2_LRS", "Premium_ZRS", "StandardSSD_LRS"
@@ -30,21 +30,31 @@ variable "disk_storage_type" {
   }
 }
 
-variable "additional_disks" {
-  type = list(object({
-    lun           = number
-    letter        = string
-    disk_size     = number
-    label         = string
-    create_option = string
-    caching       = string
-  }))
-  default = []
+variable "disk_size_gb" {
+  type    = number
+  default = 32
 }
 
 variable "zone" {
   type    = number
   default = null
+}
+
+variable "lun" {
+  type     = number
+  nullable = false
+}
+
+variable "caching" {
+  type     = string
+  default  = "ReadOnly"
+  nullable = false
+}
+
+variable "create_option" {
+  type     = string
+  default  = "Empty"
+  nullable = false
 }
 
 variable "tags" {

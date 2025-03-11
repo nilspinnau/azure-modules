@@ -1,15 +1,12 @@
 
-resource "azurerm_managed_disk" "vm_disks" {
-  # we create x disks for each vm we create
-  for_each = { for data_disk in var.additional_disks : data_disk.lun => data_disk }
-
-  name                = "disk-${each.value.lun}-${each.value.letter}-${var.resource_suffix}"
+resource "azurerm_managed_disk" "default" {
+  name                = "disk-${var.lun}-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
 
-  storage_account_type = try(each.value.type, var.disk_storage_type, "Standard_LRS")
-  create_option        = try(each.value.create_option, "Empty")
-  disk_size_gb         = each.value.disk_size
+  storage_account_type = try(var.disk_storage_type, "Standard_LRS")
+  create_option        = try(var.create_option, "Empty")
+  disk_size_gb         = var.disk_size_gb
 
   disk_encryption_set_id = var.disk_encryption_set_id
 
@@ -17,6 +14,10 @@ resource "azurerm_managed_disk" "vm_disks" {
 
   public_network_access_enabled = false
   network_access_policy         = "DenyAll" # "AllowAll"
+
+  on_demand_bursting_enabled        = true
+  optimized_frequent_attach_enabled = false
+  trusted_launch_enabled            = false
 
   tags = var.tags
 
@@ -28,16 +29,10 @@ resource "azurerm_managed_disk" "vm_disks" {
 }
 
 
-resource "azurerm_virtual_machine_data_disk_attachment" "vm_disk_attachment" {
-  for_each = { for data_disk in var.additional_disks : data_disk.lun => data_disk }
-
-  managed_disk_id    = azurerm_managed_disk.vm_disks[each.value.lun].id
+resource "azurerm_virtual_machine_data_disk_attachment" "default" {
+  managed_disk_id    = azurerm_managed_disk.default.id
   virtual_machine_id = var.virtual_machine_id
 
-  lun     = each.value.lun
-  caching = try(each.value.caching, "ReadOnly")
-
-  depends_on = [
-    azurerm_managed_disk.vm_disks
-  ]
+  lun     = var.lun
+  caching = var.caching
 }
