@@ -224,19 +224,18 @@ resource "azurerm_virtual_machine_extension" "performancediagnostics" {
 
 # Any extension
 resource "azurerm_virtual_machine_extension" "vm_extensions" {
+  for_each = { for ext in local.extensions : ext.name => ext }
 
-  count = local.vm != null ? length(local.extensions) : 0
-
-  name                       = local.extensions[count.index].name
+  name                       = each.value.name
   virtual_machine_id         = local.vm.id
-  publisher                  = local.extensions[count.index].publisher
-  type                       = local.extensions[count.index].type
-  type_handler_version       = local.extensions[count.index].version
+  publisher                  = each.value.publisher
+  type                       = each.value.type
+  type_handler_version       = each.value.version
   auto_upgrade_minor_version = true
-  automatic_upgrade_enabled  = try(local.extensions[count.index].automatic_upgrade_enabled, null)
+  automatic_upgrade_enabled  = try(each.value.automatic_upgrade_enabled, null)
 
-  settings           = try(local.extensions[count.index].settings, null)
-  protected_settings = try(local.extensions[count.index].protected_settings, null)
+  settings           = try(each.value.settings, null)
+  protected_settings = try(each.value.protected_settings, null)
 
 
   depends_on = [
