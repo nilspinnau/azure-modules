@@ -78,114 +78,7 @@ resource "azurerm_virtual_machine_automanage_configuration_assignment" "windows"
   ]
 }
 
-###################
-# VM extensions, recommended to be deployed and configured by azure policy
-
-locals {
-
-  # distinct(compact([null, {test="test"}, {hallo="here"}]))
-
-  extensions = concat([for el in var.automanage.enabled == false ? [
-    {
-      name                       = "DependencyAgent"
-      publisher                  = "Microsoft.Azure.Monitoring.DependencyAgent"
-      type                       = local.is_windows == true ? "DependencyAgentWindows" : "DependencyAgentLinux"
-      version                    = "9.10"
-      auto_upgrade_minor_version = true
-      automatic_upgrade_enabled  = true
-      settings = jsonencode({
-        enableAMA = true
-        }
-      )
-    },
-    local.is_windows == true ? {
-      name                       = local.is_windows == true ? "ChangeTracking-Windows" : "ChangeTracking-Linux"
-      publisher                  = "Microsoft.Azure.ChangeTrackingAndInventory"
-      type                       = local.is_windows == true ? "ChangeTracking-Windows" : "ChangeTracking-Linux"
-      version                    = "2.0"
-      auto_upgrade_minor_version = true
-      automatic_upgrade_enabled  = true
-      settings = jsonencode({
-        enableAMA = true
-        }
-      )
-    } : null,
-    {
-      name                       = local.is_windows == true ? "AzureMonitorWindowsAgent" : "AzureMonitorLinuxAgent"
-      publisher                  = "Microsoft.Azure.Monitor"
-      type                       = local.is_windows == true ? "AzureMonitorWindowsAgent" : "AzureMonitorLinuxAgent"
-      version                    = "1.0"
-      auto_upgrade_minor_version = true
-      automatic_upgrade_enabled  = true
-    },
-    {
-
-      name                       = "AzureNetworkWatcherExtension"
-      publisher                  = "Microsoft.Azure.NetworkWatcher"
-      type                       = local.is_windows == true ? "NetworkWatcherAgentWindows" : "NetworkWatcherAgentLinux"
-      version                    = "1.4"
-      auto_upgrade_minor_version = true
-      automatic_upgrade_enabled  = true
-    },
-    {
-      name                       = local.is_windows == true ? "AzurePolicyforWindows" : "AzurePolicyforLinux"
-      publisher                  = "Microsoft.GuestConfiguration"
-      type                       = local.is_windows == true ? "ConfigurationforWindows" : "ConfigurationForLinux"
-      version                    = "1.0"
-      auto_upgrade_minor_version = true
-      automatic_upgrade_enabled  = true
-    },
-    local.is_windows == true ? {
-      name                       = "IaaSAntimalware"
-      publisher                  = "Microsoft.Azure.Security"
-      type                       = "IaaSAntimalware"
-      version                    = "1.0"
-      auto_upgrade_minor_version = true
-      automatic_upgrade_enabled  = false
-      settings                   = <<SETTINGS
-      {
-        "AntimalwareEnabled": true,
-        "RealtimeProtectionEnabled": true,
-        "ScheduledScanSettings": {
-          "isEnabled": true,
-          "day": 0,
-          "time": 120,
-          "scanType": "Quick"
-        },
-        "SignatureUpdates": {
-          "FileSharesSources": "",
-          "FallbackOrder": "",
-          "ScheduleDay": 0,
-          "UpdateInterval": 0
-        },
-        "CloudProtection": true
-      }
-      SETTINGS
-    } : null,
-    {
-      name                       = "HealthExtension"
-      publisher                  = "Microsoft.ManagedServices"
-      type                       = local.is_windows == true ? "ApplicationHealthWindows" : "ApplicationHealthLinux"
-      version                    = "1.0"
-      auto_upgrade_minor_version = true
-      automatic_upgrade_enabled  = true
-      settings                   = <<SETTINGS
-      {
-        "protocol": "${local.is_windows == true ? "Tcp" : "tcp"}",
-        "port": ${local.is_windows == true ? 3389 : 22},
-        "requestPath": "",
-        "intervalInSeconds": 5,
-        "numberOfProbes": 1
-      }
-      SETTINGS
-    }
-  ] : [] : el if el != null], [for ext in var.extensions : merge({ name = ext.name }, ext)])
-}
-
-resource "time_static" "current" {
-}
-
-resource "azurerm_virtual_machine_extension" "performancediagnostics" {
+resource "azurerm_virtual_machine_extension" "perfdiag" {
   count = try(var.monitoring.config.performance_diagnostics == true, false) && var.scale_set.enabled == false ? 1 : 0
 
   name                       = "AzurePerformanceDiagnostics"
@@ -224,7 +117,10 @@ resource "azurerm_virtual_machine_extension" "performancediagnostics" {
 
 # Any extension
 resource "azurerm_virtual_machine_extension" "vm_extensions" {
-  for_each = { for ext in local.extensions : ext.name => ext }
+  for_each = {
+    for ext in local.extensions : ext.name => ext
+    if var.scale_set.enabled == false
+  }
 
   name                       = each.value.name
   virtual_machine_id         = local.vm.id
@@ -237,10 +133,10 @@ resource "azurerm_virtual_machine_extension" "vm_extensions" {
   settings           = try(each.value.settings, null)
   protected_settings = try(each.value.protected_settings, null)
 
-
   depends_on = [
     azurerm_windows_virtual_machine.win_vm,
-    azurerm_linux_virtual_machine.linux_vm
+    azurerm_linux_virtual_machine.linux_vm,
+    time_sleep.configuration_apply
   ]
 
   tags = var.tags
@@ -255,37 +151,6 @@ resource "time_sleep" "configuration_apply" {
   depends_on = [
     azurerm_policy_virtual_machine_configuration_assignment.default
   ]
-}
-
-
-# https://learn.microsoft.com/en-us/azure/virtual-machines/disk-encryption-overview#comparison
-resource "azurerm_virtual_machine_extension" "azure_disk_encryption" {
-  count = var.disk_encryption.type == "ade" && var.scale_set.enabled == false ? 1 : 0
-
-  name                       = "AzureDiskEncryption"
-  virtual_machine_id         = local.vm.id
-  publisher                  = "Microsoft.Azure.Security"
-  type                       = local.is_windows == true ? "AzureDiskEncryption" : "AzureDiskEncryption"
-  type_handler_version       = "2.2"
-  auto_upgrade_minor_version = true
-  automatic_upgrade_enabled  = false
-  settings                   = <<SETTINGS
-  {
-    "EncryptionOperation": "EnableEncryption",
-    "KeyEncryptionAlgorithm": "RSA-OAEP-256",
-    "KeyVaultURL": "${var.disk_encryption.vault_uri}",
-    "KeyVaultResourceId": "${var.disk_encryption.vault_id}",
-    "VolumeType": "All"
-  }
-  SETTINGS
-
-  depends_on = [
-    azurerm_windows_virtual_machine.win_vm,
-    azurerm_linux_virtual_machine.linux_vm,
-    time_sleep.configuration_apply
-  ]
-
-  tags = var.tags
 }
 
 # resource "azurerm_virtual_machine_extension" "disk_formatter" {
@@ -349,7 +214,6 @@ resource "azapi_resource" "update_attach" {
     time_sleep.configuration_apply
   ]
 }
-
 
 resource "azurerm_virtual_machine_gallery_application_assignment" "default" {
   for_each = var.gallery_applications
