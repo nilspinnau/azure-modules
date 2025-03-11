@@ -12,15 +12,14 @@ variable "resource_group_id" {
   type = string
 }
 
-variable "vm_sku" {
-  type        = string
-  description = "Azure VM SKU, determines the Azure vCPU, vRAM etc. for the VMs. More information see: https://learn.microsoft.com/en-us/azure/virtual-machines/sizes"
+variable "name" {
+  type     = string
+  nullable = false
 }
 
-variable "instance_count" {
-  type        = number
-  default     = 1
-  description = "How many VMs should be deployed."
+variable "sku" {
+  type        = string
+  description = "Azure VM SKU, determines the Azure vCPU, vRAM etc. for the VMs. More information see: https://learn.microsoft.com/en-us/azure/virtual-machines/sizes"
 }
 
 variable "os_disk_size" {
@@ -34,15 +33,22 @@ variable "resource_suffix" {
   description = "Suffix for all resources which will be deployed."
 }
 
-variable "additional_ips" {
-  type     = number
-  default  = 0
+variable "network_interface" {
+  type = map(object({
+    accelerated_networking_enabled = optional(bool, true)
+    ip_configuration = map(object({
+      subnet_id                                    = string
+      private_ip_address_allocation                = string
+      primary                                      = optional(bool, false)
+      private_ip_address                           = optional(string, null)
+      private_ip_address_version                   = optional(string, "IPv4")
+      application_gateway_backend_address_pool_ids = optional(set(string), [])
+      load_balancer_backend_address_pool_ids       = optional(set(string), [])
+      application_security_group_ids               = optional(set(string), [])
+    }))
+  }))
+  default  = {}
   nullable = false
-}
-
-variable "subnet_id" {
-  type        = string
-  description = "ID of the subnet in which to deploy the VMs."
 }
 
 variable "license_type" {
@@ -74,28 +80,16 @@ variable "dns_zone_name" {
   default = null
 }
 
-
-variable "loadbalancing" {
-  type = object({
-    application_gateway = optional(object({
-      enabled                 = optional(bool, false)
-      backend_address_pool_id = optional(string, null)
-    }), {})
-    loadbalancer = optional(object({
-      enabled                      = optional(bool, false)
-      frontend_ip_configuration_id = optional(string, null)
-      backend_address_pool_id      = optional(string, null)
-    }), {})
-  })
-  default  = {}
+variable "load_balancer_backend_address_pool_ids" {
+  type     = set(string)
+  default  = []
   nullable = false
 }
 
-
-variable "enable_availability_set" {
-  type        = bool
-  default     = false
-  description = "Flag to determine if the VMs should be in an availability set."
+variable "application_gateway_backend_address_pool_ids" {
+  type     = set(string)
+  default  = []
+  nullable = false
 }
 
 variable "scale_set" {
@@ -104,8 +98,13 @@ variable "scale_set" {
     config = optional(object({
       automatic_scaling         = optional(bool, true)
       zone_balance              = optional(bool, true)
+      zones                     = optional(set(string), ["1", "2", "3"])
       automatic_instance_repair = optional(bool, false)
       is_flexible_orchestration = optional(bool, true)
+      sku_profile = optional(object({
+        allocation_strategy = optional(string, "Lowest")
+        vm_sizes            = optional(set(string), [])
+      }), null)
     }), {})
   })
   default = {
@@ -156,37 +155,9 @@ variable "source_image_reference" {
   })
 }
 
-variable "server_name" {
-  type = string
-}
-
-variable "zones" {
-  type     = set(string)
-  default  = ["1", "2", "3"]
-  nullable = false
-}
-
-variable "enable_accelerated_networking" {
-  type        = bool
-  description = "Enable Accelerated Networking on the network interface card for the VM."
-  default     = false
-  nullable    = false
-}
-
-variable "user_assigned_identity" {
-  type = object({
-    enabled = optional(bool, false)
-    config = optional(object({
-      create = optional(bool, true)
-      id     = optional(string, null)
-      roles = optional(map(object({
-        id    = optional(string, null)
-        name  = optional(string, null)
-        scope = string
-      })), {})
-    }), {})
-  })
-  default  = {}
+variable "zone" {
+  type     = string
+  default  = "2"
   nullable = false
 }
 
@@ -253,14 +224,13 @@ variable "vtpm_enabled" {
   default = false
 }
 
-variable "enable_automatic_updates" {
+variable "automatic_updates_enabled" {
   type    = bool
   default = false
 }
 
 variable "machine_configurations" {
-  type = list(object({
-    name = string
+  type = map(object({
     configuration = object({
       assignment_type = optional(string, "Audit")
       version         = optional(string, "1.*")
@@ -272,7 +242,7 @@ variable "machine_configurations" {
       })), [])
     })
   }))
-  default = []
+  default = {}
 }
 
 variable "disk_encryption" {
@@ -309,10 +279,8 @@ variable "patching" {
 
 variable "automanage" {
   type = object({
-    enabled = optional(bool, false)
-    config = optional(object({
-      configuration_id = optional(string, "/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction")
-    }), {})
+    enabled          = optional(bool, false)
+    configuration_id = optional(string, "/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction")
   })
   default = {
     enabled = false
@@ -322,16 +290,20 @@ variable "automanage" {
 
 
 variable "private_link_service" {
-  type = object({
-    enabled = optional(bool, false)
-    config = optional(object({
-      nat_subnet_id = string
-      private_ip    = string
+  type = map(object({
+    auto_approval_subscription_ids = optional(set(string), [])
+    visibility_subscription_ids    = optional(set(string), [])
+    enable_proxy_protocol          = optional(bool, false)
+    nat_ip_configuration = map(object({
+      subnet_id                  = string
+      private_ip                 = optional(string, null)
+      private_ip_address_version = optional(string, "IPV4")
+      primary                    = bool
     }))
-  })
-  default = {
-    enabled = false
-  }
+    load_balancer_frontend_ip_configuration_ids = optional(set(string), [])
+  }))
+  default  = {}
+  nullable = false
 }
 
 variable "secure_boot_enabled" {
@@ -339,7 +311,8 @@ variable "secure_boot_enabled" {
   default = false
 }
 
-variable "enable_asg" {
-  type    = bool
-  default = false
+variable "user_assigned_identity_ids" {
+  type     = set(string)
+  default  = []
+  nullable = false
 }

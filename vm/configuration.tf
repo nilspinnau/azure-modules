@@ -7,6 +7,7 @@ locals {
 }
 
 
+# guest configuration assignment
 resource "azurerm_policy_virtual_machine_configuration_assignment" "default" {
   for_each = {
     for k, configuration in local.machine_configuration_assignments : k => configuration

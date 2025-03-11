@@ -9,73 +9,47 @@ resource "time_sleep" "wait_vm_creation" {
   ]
 }
 
-
-resource "azurerm_user_assigned_identity" "uid" {
-  count = (var.user_assigned_identity.enabled == true || var.scale_set.enabled == true) && var.user_assigned_identity.config.create == true ? 1 : 0
-
-  name                = "id-${var.server_name}-${var.resource_suffix}"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-
-  tags = var.tags
-}
-
-resource "azurerm_role_assignment" "default" {
-  for_each = {
-    for key, role in var.user_assigned_identity.config.roles : key => role
-    if(var.user_assigned_identity.enabled == true || var.scale_set.enabled == true) && var.user_assigned_identity.config.create == true
-  }
-
-  scope                = each.value.scope
-  role_definition_name = each.value.name
-  role_definition_id   = each.value.id
-  principal_id         = azurerm_user_assigned_identity.uid.0.principal_id
-}
-
-
-resource "azurerm_application_security_group" "default" {
-  count = var.enable_asg == true ? 1 : 0
-
-  name                = "asg-${var.server_name}-${var.resource_suffix}"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-
-  tags = var.tags
+locals {
+  asg_assignments = toset(flatten([
+    for nic in var.network_interface : [
+      for ipc in nic.ip_configuration : [
+        for id in ipc.application_security_group_ids : {
+          network_interface_id    = azurerm_network_interface.default[nic.key].id
+          backend_address_pool_id = id
+          ip_configuration_name   = ipc.key
+      }]
+    ]
+  ]))
 }
 
 resource "azurerm_network_interface_application_security_group_association" "default" {
-  count = var.enable_asg == true && var.scale_set.enabled == false ? var.instance_count : 0
+  for_each = local.asg_assignments
 
-  network_interface_id          = azurerm_network_interface.nic[count.index].id
-  application_security_group_id = azurerm_application_security_group.default.0.id
+  network_interface_id          = each.value.network_interface_id
+  application_security_group_id = each.value.application_security_group_id
 }
 
-resource "azurerm_network_interface" "nic" {
 
-  count = var.scale_set.enabled == false ? var.instance_count : 0
+resource "azurerm_network_interface" "default" {
+  for_each = var.network_interface
 
-  name                = "nic-${format("%s%02d", var.server_name, count.index)}-${var.resource_suffix}"
+  name                = "nic-${each.key}-${var.name}-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
 
-  accelerated_networking_enabled = var.enable_accelerated_networking
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = var.subnet_id
-    primary                       = true
-    private_ip_address_version    = "IPv4"
-    private_ip_address_allocation = "Dynamic"
-  }
+  accelerated_networking_enabled = each.value.accelerated_networking_enabled
+  ip_forwarding_enabled          = false
+  dns_servers                    = []
 
   dynamic "ip_configuration" {
-    for_each = range(var.additional_ips)
+    for_each = each.value.ip_configuration
     content {
-      name                          = "internal_${count.index}"
-      subnet_id                     = var.subnet_id
-      primary                       = false
-      private_ip_address_version    = "IPv4"
-      private_ip_address_allocation = "Dynamic"
+      name                          = ip_configuration.key
+      subnet_id                     = ip_configuration.value.subnet_id
+      primary                       = ip_configuration.value.primary
+      private_ip_address_version    = ip_configuration.value.private_ip_address_version
+      private_ip_address_allocation = ip_configuration.value.private_ip_address != null ? "Static" : "Dynamic"
+      private_ip_address            = ip_configuration.value.private_ip_address
     }
   }
 
@@ -87,44 +61,15 @@ resource "azurerm_network_interface" "nic" {
 }
 
 
-# check if makes sense
-# resource "azurerm_network_interface_application_security_group_association" "example" {
-#   network_interface_id          = azurerm_network_interface.nic.id
-#   application_security_group_id = azurerm_application_security_group.asg.id
-# }
-
-
-resource "azurerm_availability_set" "aset" {
-
-  count = var.enable_availability_set && var.scale_set.enabled == false ? 1 : 0
-
-  name                = "aset-${var.server_name}-${var.resource_suffix}"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-
-  platform_fault_domain_count  = 3
-  platform_update_domain_count = 3
-  managed                      = true
-
-  tags = var.tags
-}
-
-
-# # automanage
-resource "azapi_resource" "automanage_configuration_assignment" {
+resource "azurerm_virtual_machine_automanage_configuration_assignment" "windows" {
   for_each = {
-    for k, vm in local.vm_ids : k => vm
+    for k, vm in azurerm_windows_virtual_machine.win_vm : k => vm
     if var.automanage.enabled == true
   }
 
-  type      = "Microsoft.Automanage/configurationProfileAssignments@2022-05-04"
-  name      = "default"
-  parent_id = each.value
-  body = jsonencode({
-    properties = {
-      "configurationProfile" : var.automanage.config.configuration_id
-    }
-  })
+  virtual_machine_id = each.value.id
+  # this is still so buggy
+  configuration_id = var.automanage.configuration_id
 
   depends_on = [
     time_sleep.wait_vm_creation,
@@ -132,29 +77,6 @@ resource "azapi_resource" "automanage_configuration_assignment" {
     azurerm_linux_virtual_machine.linux_vm
   ]
 }
-
-# resource "azurerm_virtual_machine_automanage_configuration_assignment" "windows" {
-#   for_each = {
-#     for k, vm in azurerm_windows_virtual_machine.win_vm : k => vm
-#     if var.automanage.enabled == true
-#   }
-
-#   virtual_machine_id = each.value.id
-#   # this is still so buggy
-#   configuration_id = var.automanage.config.configuration_id
-
-#   depends_on = [azurerm_windows_virtual_machine.win_vm, azurerm_linux_virtual_machine.linux_vm]
-# }
-
-# resource "azurerm_virtual_machine_automanage_configuration_assignment" "linux" {
-#   for_each = {
-#     for k, vm in azurerm_linux_virtual_machine.linux_vm : k => vm
-#     if var.automanage.enabled == true
-#   }
-
-#   virtual_machine_id = each.value.id
-#   configuration_id   = var.automanage.config.configuration_id
-# }
 
 ###################
 # VM extensions, recommended to be deployed and configured by azure policy
@@ -260,14 +182,6 @@ locals {
   ] : [] : el if el != null], var.extensions)
 }
 
-locals {
-  wadlogs          = "<WadCfg> <DiagnosticMonitorConfiguration overallQuotaInMB=\"4096\" xmlns=\"http://schemas.microsoft.com/ServiceHosting/2010/10/DiagnosticsConfiguration\"> <DiagnosticInfrastructureLogs scheduledTransferLogLevelFilter=\"Error\"/> <WindowsEventLog scheduledTransferPeriod=\"PT1M\" > <DataSource name=\"Application!*[System[(Level = 1 or Level = 2)]]\" /> <DataSource name=\"Security!*[System[(Level = 1 or Level = 2)]]\" /> <DataSource name=\"System!*[System[(Level = 1 or Level = 2)]]\" /></WindowsEventLog>"
-  wadperfcounters1 = "<PerformanceCounters scheduledTransferPeriod=\"PT1M\"><PerformanceCounterConfiguration counterSpecifier=\"\\Processor(_Total)\\% Processor Time\" sampleRate=\"PT15S\" unit=\"Percent\"><annotation displayName=\"CPU utilization\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\Processor(_Total)\\% Privileged Time\" sampleRate=\"PT15S\" unit=\"Percent\"><annotation displayName=\"CPU privileged time\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\Processor(_Total)\\% User Time\" sampleRate=\"PT15S\" unit=\"Percent\"><annotation displayName=\"CPU user time\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\Processor Information(_Total)\\Processor Frequency\" sampleRate=\"PT15S\" unit=\"Count\"><annotation displayName=\"CPU frequency\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\System\\Processes\" sampleRate=\"PT15S\" unit=\"Count\"><annotation displayName=\"Processes\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\Process(_Total)\\Thread Count\" sampleRate=\"PT15S\" unit=\"Count\"><annotation displayName=\"Threads\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\Process(_Total)\\Handle Count\" sampleRate=\"PT15S\" unit=\"Count\"><annotation displayName=\"Handles\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\Memory\\% Committed Bytes In Use\" sampleRate=\"PT15S\" unit=\"Percent\"><annotation displayName=\"Memory usage\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\Memory\\Available Bytes\" sampleRate=\"PT15S\" unit=\"Bytes\"><annotation displayName=\"Memory available\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\Memory\\Committed Bytes\" sampleRate=\"PT15S\" unit=\"Bytes\"><annotation displayName=\"Memory committed\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\Memory\\Commit Limit\" sampleRate=\"PT15S\" unit=\"Bytes\"><annotation displayName=\"Memory commit limit\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\PhysicalDisk(_Total)\\% Disk Time\" sampleRate=\"PT15S\" unit=\"Percent\"><annotation displayName=\"Disk active time\" locale=\"en-us\"/></PerformanceCounterConfiguration>"
-  wadperfcounters2 = "<PerformanceCounterConfiguration counterSpecifier=\"\\PhysicalDisk(_Total)\\% Disk Read Time\" sampleRate=\"PT15S\" unit=\"Percent\"><annotation displayName=\"Disk active read time\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\PhysicalDisk(_Total)\\% Disk Write Time\" sampleRate=\"PT15S\" unit=\"Percent\"><annotation displayName=\"Disk active write time\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\PhysicalDisk(_Total)\\Disk Transfers/sec\" sampleRate=\"PT15S\" unit=\"CountPerSecond\"><annotation displayName=\"Disk operations\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\PhysicalDisk(_Total)\\Disk Reads/sec\" sampleRate=\"PT15S\" unit=\"CountPerSecond\"><annotation displayName=\"Disk read operations\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\PhysicalDisk(_Total)\\Disk Writes/sec\" sampleRate=\"PT15S\" unit=\"CountPerSecond\"><annotation displayName=\"Disk write operations\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\PhysicalDisk(_Total)\\Disk Bytes/sec\" sampleRate=\"PT15S\" unit=\"BytesPerSecond\"><annotation displayName=\"Disk speed\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\PhysicalDisk(_Total)\\Disk Read Bytes/sec\" sampleRate=\"PT15S\" unit=\"BytesPerSecond\"><annotation displayName=\"Disk read speed\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\PhysicalDisk(_Total)\\Disk Write Bytes/sec\" sampleRate=\"PT15S\" unit=\"BytesPerSecond\"><annotation displayName=\"Disk write speed\" locale=\"en-us\"/></PerformanceCounterConfiguration><PerformanceCounterConfiguration counterSpecifier=\"\\LogicalDisk(_Total)\\% Free Space\" sampleRate=\"PT15S\" unit=\"Percent\"><annotation displayName=\"Disk free space (percentage)\" locale=\"en-us\"/></PerformanceCounterConfiguration></PerformanceCounters>"
-  wadcfgxstart     = "${local.wadlogs}${local.wadperfcounters1}${local.wadperfcounters2}<Metrics resourceId=\")"
-  wadcfgxend       = "\"><MetricAggregation scheduledTransferPeriod=\"PT1H\"/><MetricAggregation scheduledTransferPeriod=\"PT1M\"/></Metrics></DiagnosticMonitorConfiguration></WadCfg>"
-}
-
 resource "time_static" "current" {
 }
 
@@ -301,42 +215,6 @@ resource "azurerm_virtual_machine_extension" "performancediagnostics" {
   SETTINGS
   protected_settings = jsonencode({
     storageAccountKey = var.monitoring.config.storage_account.key
-  })
-
-  depends_on = [
-    azurerm_windows_virtual_machine.win_vm,
-    azurerm_linux_virtual_machine.linux_vm
-  ]
-
-  tags = var.tags
-}
-
-
-resource "azurerm_virtual_machine_extension" "vmdiagnostics" {
-  for_each = {
-    for k, vm in local.vm_ids : k => vm
-    if try(var.monitoring.config.vm_diagnostics == true, false)
-  }
-
-  name                       = "Microsoft.Insights.VMDiagnosticsSettings"
-  virtual_machine_id         = each.value
-  publisher                  = "Microsoft.Azure.Diagnostics"
-  type                       = "IaaSDiagnostics"
-  type_handler_version       = "1.5"
-  auto_upgrade_minor_version = true
-  automatic_upgrade_enabled  = false
-
-  settings = jsonencode(
-    {
-      WadCfg         = jsondecode(templatefile("${path.module}/resources/wadcfg.tpl", { workspace_resource_id = var.monitoring.config.workspace.resource_id }))
-      StorageAccount = var.monitoring.config.storage_account.name
-    }
-  )
-  protected_settings = jsonencode({
-    storageAccountName     = var.monitoring.config.storage_account.name
-    storageAccountKey      = var.monitoring.config.storage_account.key
-    storageAccountEndPoint = "https://core.windows.net"
-    StorageType            = "Table"
   })
 
   depends_on = [
@@ -383,6 +261,8 @@ resource "time_sleep" "configuration_apply" {
   ]
 }
 
+
+# https://learn.microsoft.com/en-us/azure/virtual-machines/disk-encryption-overview#comparison
 resource "azurerm_virtual_machine_extension" "azure_disk_encryption" {
   for_each = {
     for k, vm in local.vm_ids : k => vm

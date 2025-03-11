@@ -17,9 +17,9 @@ output "vms" {
         disk_encryption_type   = var.disk_encryption.config.type
         disk_encryption_set_id = data.azurerm_managed_disk.win_os_disk[k].disk_encryption_set_id
       }
-      resource_group_name  = var.resource_group_name
-      network_interface_id = azurerm_network_interface.nic.0.id
-      managed_disks        = module.windows_disks[k].data_disks
+      resource_group_name   = var.resource_group_name
+      network_interface_ids = [for nic in azurerm_network_interface.default : nic.id]
+      managed_disks         = module.windows_disks[k].data_disks
     }
     } : {
     for k, vm in azurerm_linux_virtual_machine.linux_vm : k => {
@@ -34,9 +34,9 @@ output "vms" {
         disk_encryption_type   = var.disk_encryption.config.type
         disk_encryption_set_id = data.azurerm_managed_disk.linux_os_disk[k].disk_encryption_set_id
       }
-      resource_group_name  = var.resource_group_name
-      network_interface_id = azurerm_network_interface.nic.0.id
-      managed_disks        = module.linux_disks[k].data_disks
+      resource_group_name   = var.resource_group_name
+      network_interface_ids = [for nic in azurerm_network_interface.default : nic.id]
+      managed_disks         = module.linux_disks[k].data_disks
       # managed_disks        = { for x, disk in module.linux_disks[k].data_disks : disk.lun => merge(disk, {disk_encryption_type = var.disk_encryption.config.type}) }
     }
   }
@@ -49,11 +49,4 @@ output "privatelink" {
     alias = try(azurerm_private_link_service.default.0.alias, null)
     id    = try(azurerm_private_link_service.default.0.id, null)
   }
-}
-
-output "user_assigned_identity" {
-  value = var.user_assigned_identity.enabled == true ? {
-    id    = coalesce(var.user_assigned_identity.config.id, azurerm_user_assigned_identity.uid.0.id)
-    roles = var.user_assigned_identity.config.roles
-  } : null
 }

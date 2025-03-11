@@ -1,20 +1,27 @@
 resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   count = var.scale_set.enabled == true && var.scale_set.config.is_flexible_orchestration == true ? 1 : 0
 
-  name                         = "vmss-${var.resource_suffix}-${var.server_name}"
+  name                         = "vmss-${var.resource_suffix}-${var.name}"
   resource_group_name          = var.resource_group_name
   extension_operations_enabled = true
   location                     = var.location
 
-  platform_fault_domain_count = length(var.zones) > 0 ? 1 : 2
-  instances                   = var.instance_count
-  sku_name                    = var.vm_sku
+  platform_fault_domain_count = length(var.scale_set.config.zones) > 0 ? 1 : 2
+  instances                   = 1
+  sku_name                    = var.scale_set.config.sku_profile != null ? "Mix" : var.sku
 
+  dynamic "sku_profile" {
+    for_each = var.scale_set.config.sku_profile != null ? [var.scale_set.config.sku_profile] : []
+    content {
+      allocation_strategy = sku_profile.value.allocation_strategy
+      vm_sizes            = sku_profile.value.vm_sizes
+    }
+  }
 
-  zone_balance = length(var.zones) > 0 ? true : false
-  zones        = var.zones
+  zone_balance = var.scale_set.config.zone_balance
+  zones        = var.scale_set.config.zones
 
-  license_type = "None"
+  license_type = var.license_type
   priority     = "Regular"
 
   encryption_at_host_enabled = var.disk_encryption.enabled == true && (var.disk_encryption.config.type == "host" || var.disk_encryption.config.type == "des+")
@@ -27,24 +34,26 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   }
 
   dynamic "network_interface" {
-    for_each = var.scale_set.config.automatic_scaling == true ? [1] : []
+    for_each = var.network_interface
     content {
-      name                          = "nic-${var.resource_suffix}-${var.server_name}"
+      name                          = "nic-${network_interface.key}-${var.resource_suffix}-${var.name}"
       dns_servers                   = []
-      enable_accelerated_networking = var.enable_accelerated_networking
+      enable_accelerated_networking = network_interface.value.accelerated_networking_enabled
       enable_ip_forwarding          = false
-      ip_configuration {
-        name                                         = "default"
-        primary                                      = true
-        subnet_id                                    = var.subnet_id
-        version                                      = var.ip_version
-        application_security_group_ids               = var.enable_asg == true ? [azurerm_application_security_group.default.0.id] : []
-        load_balancer_backend_address_pool_ids       = var.loadbalancing.loadbalancer.enabled == true ? [var.loadbalancing.loadbalancer.backend_address_pool_id] : []
-        application_gateway_backend_address_pool_ids = var.loadbalancing.application_gateway.enabled == true ? [var.loadbalancing.application_gateway.backend_address_pool_id] : []
+      dynamic "ip_configuration" {
+        for_each = network_interface.value.ip_configuration
+        content {
+          name                                         = ip_configuration.key
+          primary                                      = ip_configuration.value.primary
+          subnet_id                                    = ip_configuration.value.subnet_id
+          version                                      = ip_configuration.value.ip_version
+          application_security_group_ids               = ip_configuration.value.application_security_group_ids
+          load_balancer_backend_address_pool_ids       = ip_configuration.value.load_balancer_backend_address_pool_ids
+          application_gateway_backend_address_pool_ids = ip_configuration.value.application_gateway_backend_address_pool_ids
+        }
       }
     }
   }
-
 
   dynamic "os_disk" {
     for_each = var.scale_set.config.automatic_scaling == true ? [1] : []
@@ -57,10 +66,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   }
 
   dynamic "identity" {
-    for_each = var.user_assigned_identity.enabled == true ? [var.user_assigned_identity] : []
+    for_each = length(var.user_assigned_identity_ids) > 0 ? [1] : []
     content {
-      type         = "UserAssigned"
-      identity_ids = identity.value.config.create == true ? [azurerm_user_assigned_identity.uid.0.id] : [identity.value.config.id]
+      type         = "SystemAssigned, UserAssigned"
+      identity_ids = var.user_assigned_identity_ids
     }
   }
 
@@ -113,7 +122,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
         content {
           admin_username           = var.admin_username
           admin_password           = var.admin_password
-          computer_name_prefix     = var.server_name
+          computer_name_prefix     = var.name
           enable_automatic_updates = var.patching.enabled
           hotpatching_enabled      = var.hotpatching_enabled
           provision_vm_agent       = true
@@ -131,7 +140,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
           admin_password                  = var.admin_password
           disable_password_authentication = false
           provision_vm_agent              = true
-          computer_name_prefix            = var.server_name
+          computer_name_prefix            = var.name
           patch_mode                      = var.patching.enabled == true ? var.patching.patch_mode : null
           patch_assessment_mode           = var.patching.enabled == true ? var.patching.patch_assessment_mode : null
         }

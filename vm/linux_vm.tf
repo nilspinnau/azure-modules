@@ -1,20 +1,19 @@
 
 resource "azurerm_linux_virtual_machine" "linux_vm" {
 
-  count = local.is_windows == false && var.scale_set.enabled == false ? var.instance_count : 0
+  count = local.is_windows == false && var.scale_set.enabled == false ? 1 : 0
 
-  name                            = format("%s%04d", var.server_name, count.index)
-  computer_name                   = format("%s%04d", var.server_name, count.index)
+  name                            = var.name
+  computer_name                   = var.name
   location                        = var.location
   resource_group_name             = var.resource_group_name
   admin_username                  = var.admin_username
   admin_password                  = var.admin_password
   disable_password_authentication = false
 
-  availability_set_id          = var.enable_availability_set == true && length(var.zones) > 0 == false && var.scale_set.enabled == false ? one(azurerm_availability_set.aset[*].id) : null
   virtual_machine_scale_set_id = var.scale_set.enabled == true ? azurerm_orchestrated_virtual_machine_scale_set.vmss.0.id : null
 
-  zone = length(var.zones) > 0 ? tolist(var.zones)[count.index % length(var.zones)] : null
+  zone = var.zone
 
   allow_extension_operations        = true
   encryption_at_host_enabled        = var.disk_encryption.enabled == true && (var.disk_encryption.config.type == "host" || var.disk_encryption.config.type == "des+")
@@ -29,13 +28,11 @@ resource "azurerm_linux_virtual_machine" "linux_vm" {
   patch_mode            = var.patching.enabled == true ? var.patching.patch_mode : null
   patch_assessment_mode = var.patching.enabled == true ? var.patching.patch_assessment_mode : null
 
-  size = var.vm_sku
-  network_interface_ids = [
-    azurerm_network_interface.nic[count.index].id
-  ]
+  size                  = var.sku
+  network_interface_ids = [for nic in azurerm_network_interface.default : nic.id]
 
   os_disk {
-    name                 = "osdisk-${format("%s%04d", var.server_name, count.index)}-${var.resource_suffix}"
+    name                 = "osdisk-${var.name}-${var.resource_suffix}"
     caching              = "ReadWrite"
     storage_account_type = var.disk_storage_type
     disk_size_gb         = var.os_disk_size
@@ -56,14 +53,14 @@ resource "azurerm_linux_virtual_machine" "linux_vm" {
   }
 
   dynamic "identity" {
-    for_each = var.user_assigned_identity.enabled == true ? [var.user_assigned_identity] : []
+    for_each = length(var.user_assigned_identity_ids) > 0 ? [1] : []
     content {
       type         = "SystemAssigned, UserAssigned"
-      identity_ids = identity.value.config.create == true ? [azurerm_user_assigned_identity.uid.0.id] : [identity.value.config.id]
+      identity_ids = var.user_assigned_identity_ids
     }
   }
   dynamic "identity" {
-    for_each = var.user_assigned_identity.enabled == false ? [1] : []
+    for_each = length(var.user_assigned_identity_ids) <= 0 ? [1] : []
     content {
       type = "SystemAssigned"
     }
@@ -75,11 +72,11 @@ resource "azurerm_linux_virtual_machine" "linux_vm" {
 module "linux_disks" {
   source = "./modules/disks"
 
-  count = local.is_windows == false && var.scale_set.enabled == false ? var.instance_count : 0
+  count = local.is_windows == false && var.scale_set.enabled == false ? 1 : 0
 
   resource_group_name = var.resource_group_name
   location            = var.location
-  resource_suffix     = "${format("%s%04d", var.server_name, count.index)}-${var.resource_suffix}"
+  resource_suffix     = "${var.name}-${var.resource_suffix}"
   virtual_machine_id  = azurerm_linux_virtual_machine.linux_vm[count.index].id
   disk_storage_type   = var.disk_storage_type
   additional_disks    = var.additional_disks
@@ -89,14 +86,14 @@ module "linux_disks" {
 
   tags = var.tags
 
-  zone = length(var.zones) > 0 ? tolist(var.zones)[count.index % length(var.zones)] : null
+  zone = var.zone
 }
 
 
 data "azurerm_managed_disk" "linux_os_disk" {
-  count = local.is_windows == false && var.scale_set.enabled == false ? var.instance_count : 0
+  count = local.is_windows == false && var.scale_set.enabled == false ? 1 : 0
 
-  name                = "osdisk-${format("%s%04d", var.server_name, count.index)}-${var.resource_suffix}"
+  name                = "osdisk-${var.name}-${var.resource_suffix}"
   resource_group_name = var.resource_group_name
 
   depends_on = [
@@ -109,8 +106,8 @@ data "azurerm_managed_disk" "linux_os_disk" {
 resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
   count = local.is_windows == false && var.scale_set.enabled == true && try(var.scale_set.config.is_flexible_orchestration, false) == false ? 1 : 0
 
-  name                 = "vmss-${var.server_name}-${var.resource_suffix}"
-  computer_name_prefix = var.server_name
+  name                 = "vmss-${var.name}-${var.resource_suffix}"
+  computer_name_prefix = var.name
   location             = var.location
   resource_group_name  = var.resource_group_name
   admin_username       = var.admin_username
@@ -132,29 +129,33 @@ resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
   vtpm_enabled        = var.vtpm_enabled
   secure_boot_enabled = var.secure_boot_enabled
 
-  network_interface {
-    name                          = "nic-${var.resource_suffix}-${var.server_name}"
-    dns_servers                   = []
-    enable_accelerated_networking = var.enable_accelerated_networking
-    enable_ip_forwarding          = false
-    primary                       = true
-    ip_configuration {
-      name                                         = "default"
-      primary                                      = true
-      subnet_id                                    = var.subnet_id
-      version                                      = var.ip_version
-      application_security_group_ids               = compact([try(azurerm_application_security_group.default.0.id, null)])
-      load_balancer_backend_address_pool_ids       = var.loadbalancing.loadbalancer.enabled == true && var.loadbalancing.loadbalancer.backend_address_pool_id != null ? [var.loadbalancing.loadbalancer.backend_address_pool_id] : []
-      application_gateway_backend_address_pool_ids = var.loadbalancing.application_gateway.enabled == true && var.loadbalancing.application_gateway.backend_address_pool_id != null ? [var.loadbalancing.application_gateway.backend_address_pool_id] : []
+  dynamic "network_interface" {
+    for_each = var.network_interface
+    content {
+      name                          = "nic-${network_interface.key}-${var.resource_suffix}-${var.name}"
+      dns_servers                   = []
+      enable_accelerated_networking = network_interface.value.accelerated_networking_enabled
+      enable_ip_forwarding          = false
+      dynamic "ip_configuration" {
+        for_each = network_interface.value.ip_configuration
+        content {
+          name                                         = network_interface.key
+          primary                                      = network_interface.value.primary
+          subnet_id                                    = network_interface.value.subnet_id
+          version                                      = network_interface.value.ip_version
+          application_security_group_ids               = var.application_security_group_ids
+          load_balancer_backend_address_pool_ids       = ip_configuration.value.load_balancer_backend_address_pool_ids
+          application_gateway_backend_address_pool_ids = ip_configuration.value.application_gateway_backend_address_pool_ids
+        }
+      }
     }
   }
 
-  sku       = var.vm_sku
-  instances = var.instance_count
+  sku       = var.sku
+  instances = 1
 
-
-  zone_balance                    = length(var.zones) > 0 ? true : false
-  zones                           = var.zones
+  zone_balance                    = var.scale_set.config.zone_balance
+  zones                           = var.scale_set.config.zones
   provision_vm_agent              = true
   disable_password_authentication = false
 
@@ -182,12 +183,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
     }
   }
 
-  dynamic "identity" {
-    for_each = var.user_assigned_identity.enabled == false ? [1] : []
-    content {
-      type = "SystemAssigned"
-    }
-  }
   encryption_at_host_enabled = var.disk_encryption.enabled == true && (var.disk_encryption.config.type == "host" || var.disk_encryption.config.type == "des+")
 
   dynamic "boot_diagnostics" {
@@ -212,10 +207,16 @@ resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
   }
 
   dynamic "identity" {
-    for_each = var.user_assigned_identity.enabled == true ? [var.user_assigned_identity] : []
+    for_each = length(var.user_assigned_identity_ids) > 0 ? [1] : []
     content {
       type         = "SystemAssigned, UserAssigned"
-      identity_ids = identity.value.config.create == true ? [azurerm_user_assigned_identity.uid.0.id] : [identity.value.config.id]
+      identity_ids = var.user_assigned_identity_ids
+    }
+  }
+  dynamic "identity" {
+    for_each = length(var.user_assigned_identity_ids) <= 0 ? [1] : []
+    content {
+      type = "SystemAssigned"
     }
   }
 
