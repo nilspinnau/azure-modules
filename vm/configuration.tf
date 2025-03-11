@@ -1,7 +1,11 @@
 
 # guest configuration assignment
 resource "azurerm_policy_virtual_machine_configuration_assignment" "default" {
-  for_each = var.machine_configurations
+  for_each = {
+    for k, v in var.machine_configurations : k => v
+    if local.vm != null
+  }
+
 
   name               = each.value.name
   location           = var.location

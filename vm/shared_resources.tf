@@ -186,7 +186,7 @@ resource "time_static" "current" {
 }
 
 resource "azurerm_virtual_machine_extension" "performancediagnostics" {
-  count = try(var.monitoring.config.performance_diagnostics == true, false) ? 1 : 0
+  count = try(var.monitoring.config.performance_diagnostics == true, false) && local.vm != null ? 1 : 0
 
   name                       = "AzurePerformanceDiagnostics"
   publisher                  = "Microsoft.Azure.Performance.Diagnostics"
@@ -225,7 +225,7 @@ resource "azurerm_virtual_machine_extension" "performancediagnostics" {
 # Any extension
 resource "azurerm_virtual_machine_extension" "vm_extensions" {
 
-  count = length(local.extensions)
+  count = local.vm != null ? length(local.extensions) : 0
 
   name                       = local.extensions[count.index].name
   virtual_machine_id         = local.vm.id
@@ -261,7 +261,7 @@ resource "time_sleep" "configuration_apply" {
 
 # https://learn.microsoft.com/en-us/azure/virtual-machines/disk-encryption-overview#comparison
 resource "azurerm_virtual_machine_extension" "azure_disk_encryption" {
-  count = var.disk_encryption.enabled == true && var.disk_encryption.config.type == "ade" ? 1 : 0
+  count = var.disk_encryption.enabled == true && var.disk_encryption.config.type == "ade" && local.vm != null ? 1 : 0
 
   name                       = "AzureDiskEncryption"
   virtual_machine_id         = local.vm.id
