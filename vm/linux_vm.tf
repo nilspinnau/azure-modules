@@ -32,10 +32,11 @@ resource "azurerm_linux_virtual_machine" "linux_vm" {
   network_interface_ids = local.network_interface_ids
 
   os_disk {
-    name                 = "osdisk-${var.name}-${var.resource_suffix}"
-    caching              = "ReadWrite"
-    storage_account_type = var.disk_storage_type
-    disk_size_gb         = var.os_disk_size
+    name                   = "osdisk-${var.name}-${var.resource_suffix}"
+    caching                = "ReadWrite"
+    storage_account_type   = var.disk_storage_type
+    disk_size_gb           = var.os_disk_size
+    disk_encryption_set_id = var.disk_encryption.disk_encryption_set_id
   }
 
   dynamic "boot_diagnostics" {
