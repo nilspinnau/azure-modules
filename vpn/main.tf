@@ -126,8 +126,8 @@ resource "azurerm_virtual_network_gateway_connection" "direction_in" {
 
 
 resource "azurerm_virtual_network_gateway_connection" "direction_out" {
-  for_each = { 
-    for k, v in var.connection: k => v 
+  for_each = {
+    for k, v in var.connection : k => v
     if v.bi_directional_enabled
   }
 

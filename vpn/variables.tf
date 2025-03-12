@@ -125,8 +125,8 @@ variable "connection" {
     shared_key                      = string
     bi_directional_enabled          = optional(bool, false)
     peer_virtual_network_gateway_id = string
-    remote_location = string
-    resource_group_name = string
+    remote_location                 = string
+    resource_group_name             = string
   }))
   default = {}
 }
