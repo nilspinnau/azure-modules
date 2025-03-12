@@ -146,6 +146,7 @@ variable "failover" {
     location            = string
     resource_group_name = optional(string, null)
   })
+  default = null
 }
 
 

@@ -9,18 +9,21 @@ locals {
   name          = "sql${var.name}${random_string.name.result}"
   failover_name = "sqldr${var.name}${random_string.name.result}"
 
-  servers = {
+  primary = {
     (local.name) = {
       name                = local.name
       resource_group_name = var.resource_group_name
       location            = var.location
     }
+  }
+
+  servers = var.failover != null ? merge(local.primary, {
     (local.failover_name) = {
       name                = local.failover_name
       resource_group_name = coalesce(var.failover.resource_group_name, var.resource_group_name)
       location            = var.failover.location
     }
-  }
+  }) : local.primary
 }
 
 
