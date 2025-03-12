@@ -46,40 +46,39 @@ variable "subnets" {
   type = map(object({
     newbit             = number
     attach_route_table = optional(bool, true)
-    service_endpoints  = optional(list(string), [])
+    service_endpoints  = optional(set(string), [])
     nat_gateway        = optional(bool, false)
     enable_nsg         = optional(bool, true)
     delegation = optional(object({
       name = string
       service_delegation = object({
         name    = string
-        actions = list(string)
+        actions = set(string)
       })
     }))
-    nsg_rules = optional(list(object({
-      name                         = string
+    nsg_rules = optional(map(object({
+      priority                     = number
       description                  = optional(string, "TBD")
       direction                    = string
       access                       = string
       protocol                     = string
-      destination_port_ranges      = list(string)
-      source_address_prefixes      = optional(list(string), [])
-      destination_address_prefixes = optional(list(string), [])
+      destination_port_ranges      = set(string)
+      source_address_prefixes      = optional(set(string), [])
+      destination_address_prefixes = optional(set(string), [])
       source_address_prefix        = optional(string, null)
       destination_address_prefix   = optional(string, null)
-    })), [])
+    })), {})
     private_endpoint_network_policies             = optional(string, "Enabled")
     private_link_service_network_policies_enabled = optional(bool, true)
   }))
 }
 
 variable "dns_zone_links" {
-  type = list(object({
-    name                  = optional(string)
+  type = map(object({
     resource_group_name   = string
     private_dns_zone_name = string
   }))
-  default = []
+  default = {}
 }
 
 variable "route_table" {

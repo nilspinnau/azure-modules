@@ -94,8 +94,9 @@ resource "azurerm_subnet_nat_gateway_association" "association" {
 
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_links" {
-  for_each = { for zone in var.dns_zone_links : zone.private_dns_zone_name => zone }
-  name     = coalesce(each.value.name, each.value.private_dns_zone_name)
+  for_each = var.dns_zone_links
+
+  name = each.key
 
   private_dns_zone_name = each.value.private_dns_zone_name
   resource_group_name   = each.value.resource_group_name
