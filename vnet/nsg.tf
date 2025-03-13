@@ -27,12 +27,8 @@ resource "azurerm_network_security_group" "default" {
       source_port_range       = "*" # try(security_rule.value.source_port, "*")
       destination_port_ranges = security_rule.value.destination_port_ranges
 
-      source_address_prefixes = security_rule.value.source_address_prefix == null ? coalesce(security_rule.value.source_address_prefixes, azurerm_virtual_network.default.address_space) : null
-
-      destination_address_prefixes = security_rule.value.source_address_prefix == null ? coalesce(security_rule.value.destination_address_prefixes, azurerm_virtual_network.default.address_space) : null
-
-      source_address_prefix      = coalesce(try(azurerm_subnet.default[security_rule.value.source_address_prefix].address_prefixes.0, null), security_rule.value.source_address_prefix, azurerm_subnet.default[each.key].address_prefixes.0)
-      destination_address_prefix = coalesce(try(azurerm_subnet.default[security_rule.value.destination_address_prefix].address_prefixes.0, null), security_rule.value.destination_address_prefix, azurerm_subnet.default[each.key].address_prefixes.0)
+      source_address_prefixes      = security_rule.value.source_address_prefixes
+      destination_address_prefixes = security_rule.value.destination_address_prefixes
     }
   }
 }

@@ -65,8 +65,6 @@ variable "subnets" {
       destination_port_ranges      = set(string)
       source_address_prefixes      = optional(set(string), [])
       destination_address_prefixes = optional(set(string), [])
-      source_address_prefix        = optional(string, null)
-      destination_address_prefix   = optional(string, null)
     })), {})
     private_endpoint_network_policies             = optional(string, "Enabled")
     private_link_service_network_policies_enabled = optional(bool, true)
