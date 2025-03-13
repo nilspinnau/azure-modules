@@ -12,7 +12,7 @@ resource "azurerm_virtual_network_peering" "first" {
   allow_forwarded_traffic      = var.peering.config.first.allow_forwarded_traffic
   allow_gateway_transit        = var.peering.config.first.allow_gateway_transit
   allow_virtual_network_access = var.peering.config.first.allow_virtual_network_access
-  use_remote_gateways = var.peering.config.first.use_remote_gateways
+  use_remote_gateways          = var.peering.config.first.use_remote_gateways
 
   provider = azurerm.first
 }
@@ -28,7 +28,7 @@ resource "azurerm_virtual_network_peering" "second" {
   allow_forwarded_traffic      = var.peering.config.second.allow_forwarded_traffic
   allow_gateway_transit        = var.peering.config.second.allow_gateway_transit
   allow_virtual_network_access = var.peering.config.second.allow_virtual_network_access
-  use_remote_gateways = var.peering.config.first.use_remote_gateways
+  use_remote_gateways          = var.peering.config.second.use_remote_gateways
 
   provider = azurerm.second
 }

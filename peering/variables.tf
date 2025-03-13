@@ -9,7 +9,7 @@ variable "peering" {
         allow_forwarded_traffic      = optional(bool, false)
         allow_gateway_transit        = optional(bool, false)
         allow_virtual_network_access = optional(bool, false)
-  use_remote_gateways = optional(bool, false)
+        use_remote_gateways          = optional(bool, false)
       })
       second = object({
         resource_group_name          = string
@@ -18,7 +18,7 @@ variable "peering" {
         allow_forwarded_traffic      = optional(bool, false)
         allow_gateway_transit        = optional(bool, false)
         allow_virtual_network_access = optional(bool, false)
-  use_remote_gateways = optional(bool, false)
+        use_remote_gateways          = optional(bool, false)
       })
     }))
   })
