@@ -44,7 +44,7 @@ variable "flow_logs" {
 
 variable "subnets" {
   # if we do not use list/set then we will have a problem with ordering and recreation of subnets....
-  type = set(object({
+  type = list(object({
     name               = string
     newbit             = number
     attach_route_table = optional(bool, true)

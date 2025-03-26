@@ -16,8 +16,9 @@ resource "azurerm_virtual_network" "default" {
 }
 
 locals {
-  newbits         = [for subnet in var.subnets : subnet.newbit]
-  subnet_prefixes = zipmap([for subnet in var.subnets : subnet.name], cidrsubnets(var.address_space, local.newbits...))
+  newbits         = [for _, subnet in var.subnets : subnet.newbit]
+  subnet_prefixes = cidrsubnets(var.address_space, local.newbits...)
+  subnets = {for k, subnet in var.subnets : subnet.name => local.subnet_prefixes[k]}
 }
 
 resource "azurerm_subnet" "default" {
@@ -28,7 +29,7 @@ resource "azurerm_subnet" "default" {
 
   virtual_network_name = azurerm_virtual_network.default.name
 
-  address_prefixes  = [local.subnet_prefixes[each.key]]
+  address_prefixes  = [local.subnets[each.key]]
   service_endpoints = each.value.service_endpoints
 
   dynamic "delegation" {
