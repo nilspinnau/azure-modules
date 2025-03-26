@@ -43,7 +43,9 @@ variable "flow_logs" {
 }
 
 variable "subnets" {
-  type = map(object({
+  # if we do not use list/set then we will have a problem with ordering and recreation of subnets....
+  type = set(object({
+    name               = string
     newbit             = number
     attach_route_table = optional(bool, true)
     service_endpoints  = optional(set(string), [])

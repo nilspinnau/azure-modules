@@ -5,7 +5,7 @@
 
 resource "azurerm_network_security_group" "default" {
   for_each = {
-    for k, subnet in var.subnets : k => subnet
+    for k, subnet in var.subnets : subnet.name => subnet
     if subnet.enable_nsg == true
   }
 
@@ -36,7 +36,7 @@ resource "azurerm_network_security_group" "default" {
 
 resource "azurerm_subnet_network_security_group_association" "default" {
   for_each = {
-    for k, subnet in var.subnets : k => subnet
+    for k, subnet in var.subnets : subnet.name => subnet
     if subnet.enable_nsg == true
   }
 

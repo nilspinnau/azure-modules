@@ -29,7 +29,7 @@ resource "azurerm_route" "default" {
 
 resource "azurerm_subnet_route_table_association" "default" {
   for_each = {
-    for k, subnet in var.subnets : k => subnet
+    for k, subnet in var.subnets : subnet.name => subnet
     if subnet.attach_route_table == true && var.route_table.enabled == true
   }
 
