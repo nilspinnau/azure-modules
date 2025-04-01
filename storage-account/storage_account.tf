@@ -28,6 +28,8 @@ resource "azurerm_storage_account" "default" {
   account_tier             = local.account_tier
   account_replication_type = var.account_replication_type
 
+  local_user_enabled = false
+
   access_tier = var.account_kind != "BlockBlobStorage" ? var.access_tier : null
 
   default_to_oauth_authentication = true
