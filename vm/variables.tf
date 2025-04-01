@@ -175,6 +175,11 @@ variable "extensions" {
   nullable = false
 }
 
+variable "extensions_to_ignore" {
+  type    = set(string)
+  default = []
+}
+
 variable "monitoring" {
   type = object({
     enabled = optional(bool, false)

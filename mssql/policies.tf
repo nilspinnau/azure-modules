@@ -85,8 +85,8 @@ resource "azurerm_mssql_server_security_alert_policy" "default" {
 resource "azurerm_mssql_server_vulnerability_assessment" "default" {
   for_each = {
     for k, v in local.servers : k => v
-    if((var.auditing.storage_account != null && var.auditing.storage_account.vulnerability_container_path != "") ||
-    var.auditing.log_analytics != null) &&
+    if var.auditing.storage_account != null &&
+    try(var.auditing.storage_account.vulnerability_container_path != "", false) &&
     var.auditing.security_alert_policy_enabled == true
   }
 

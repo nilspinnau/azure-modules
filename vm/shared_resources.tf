@@ -140,6 +140,12 @@ resource "azurerm_virtual_machine_extension" "vm_extensions" {
   ]
 
   tags = var.tags
+
+  lifecycle {
+    ignore_changes = [
+      type_handler_version
+    ]
+  }
 }
 
 

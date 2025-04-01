@@ -15,7 +15,7 @@ locals {
       name                       = "DependencyAgent"
       publisher                  = "Microsoft.Azure.Monitoring.DependencyAgent"
       type                       = local.is_windows == true ? "DependencyAgentWindows" : "DependencyAgentLinux"
-      version                    = "9.10"
+      version                    = "9.10.18.4770"
       auto_upgrade_minor_version = true
       automatic_upgrade_enabled  = true
       settings = jsonencode({
@@ -23,7 +23,7 @@ locals {
         }
       )
     },
-    local.is_windows == true ? {
+    {
       name                       = local.is_windows == true ? "ChangeTracking-Windows" : "ChangeTracking-Linux"
       publisher                  = "Microsoft.Azure.ChangeTrackingAndInventory"
       type                       = local.is_windows == true ? "ChangeTracking-Windows" : "ChangeTracking-Linux"
@@ -34,7 +34,7 @@ locals {
         enableAMA = true
         }
       )
-    } : null,
+    },
     {
       name                       = local.is_windows == true ? "AzureMonitorWindowsAgent" : "AzureMonitorLinuxAgent"
       publisher                  = "Microsoft.Azure.Monitor"
@@ -44,7 +44,6 @@ locals {
       automatic_upgrade_enabled  = true
     },
     {
-
       name                       = "AzureNetworkWatcherExtension"
       publisher                  = "Microsoft.Azure.NetworkWatcher"
       type                       = local.is_windows == true ? "NetworkWatcherAgentWindows" : "NetworkWatcherAgentLinux"
@@ -121,5 +120,5 @@ locals {
       }
       SETTINGS
     } : null
-  ] : [] : el if el != null], [for ext in var.extensions : merge({ name = ext.name }, ext)])
+  ] : [] : el if el != null && try(!contains(var.extensions_to_ignore, el.name), true)], [for ext in var.extensions : merge({ name = ext.name }, ext)])
 }

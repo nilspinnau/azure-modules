@@ -6,8 +6,8 @@ resource "random_string" "name" {
 }
 
 locals {
-  name          = "sql${var.name}${random_string.name.result}"
-  failover_name = "sqldr${var.name}${random_string.name.result}"
+  name          = "sql${var.name}"
+  failover_name = "sqldr${var.name}"
 
   primary = {
     (local.name) = {
@@ -30,7 +30,7 @@ locals {
 resource "azurerm_mssql_server" "default" {
   for_each = local.servers
 
-  name                = each.key
+  name                = "${each.key}${random_string.name.result}"
   resource_group_name = each.value.resource_group_name
   location            = each.value.location
   version             = var.sql_version
@@ -114,7 +114,7 @@ resource "azurerm_mssql_failover_group" "default" {
   count = var.failover != null ? 1 : 0
 
   name      = "failover-group"
-  databases = [for db in var.databases : azurerm_mssql_database.default[db.name].id if db.active_failover_enabled]
+  databases = [for k, db in var.databases : azurerm_mssql_database.default[k].id if db.active_failover_enabled]
 
   readonly_endpoint_failover_policy_enabled = true
   partner_server {
@@ -123,7 +123,7 @@ resource "azurerm_mssql_failover_group" "default" {
   server_id = azurerm_mssql_server.default[local.name].id
 
   read_write_endpoint_failover_policy {
-    mode          = "Automatic"
+    mode          = "Manual"
     grace_minutes = 60
   }
 }

@@ -18,7 +18,7 @@ resource "azurerm_virtual_network" "default" {
 locals {
   newbits         = [for _, subnet in var.subnets : subnet.newbit]
   subnet_prefixes = cidrsubnets(var.address_space, local.newbits...)
-  subnets = {for k, subnet in var.subnets : subnet.name => local.subnet_prefixes[k]}
+  subnets         = { for k, subnet in var.subnets : subnet.name => local.subnet_prefixes[k] }
 }
 
 resource "azurerm_subnet" "default" {
