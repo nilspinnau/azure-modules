@@ -157,20 +157,20 @@ resource "azurerm_mssql_database_extended_auditing_policy" "example" {
 data "azurerm_monitor_diagnostic_categories" "mssql_db_diag" {
   for_each = { for k, database in var.databases : k => database }
 
-  resource_id = azurerm_mssql_database.default[each.value.name].id
+  resource_id = azurerm_mssql_database.default[each.key].id
 }
 
 resource "azurerm_monitor_diagnostic_setting" "diagnostic_settings_db" {
   for_each = { for k, database in var.databases : k => database }
 
-  name                           = lower("ds-${each.value.name}-${var.resource_suffix}")
-  target_resource_id             = azurerm_mssql_database.default[each.value.name].id
+  name                           = lower("ds-${each.key}-${var.resource_suffix}")
+  target_resource_id             = azurerm_mssql_database.default[each.key].id
   log_analytics_workspace_id     = var.auditing.log_analytics.workspace_resource_id
   log_analytics_destination_type = "Dedicated"
   storage_account_id             = try(var.auditing.storage_account.id, null)
 
   dynamic "metric" {
-    for_each = data.azurerm_monitor_diagnostic_categories.mssql_db_diag[each.value.name].metrics
+    for_each = data.azurerm_monitor_diagnostic_categories.mssql_db_diag[each.key].metrics
     content {
       category = metric.value
       enabled  = true
@@ -178,7 +178,7 @@ resource "azurerm_monitor_diagnostic_setting" "diagnostic_settings_db" {
   }
 
   dynamic "enabled_log" {
-    for_each = data.azurerm_monitor_diagnostic_categories.mssql_db_diag[each.value.name].log_category_types
+    for_each = data.azurerm_monitor_diagnostic_categories.mssql_db_diag[each.key].log_category_types
     content {
       category = enabled_log.value
     }
