@@ -161,7 +161,9 @@ data "azurerm_monitor_diagnostic_categories" "mssql_db_diag" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "diagnostic_settings_db" {
-  for_each = { for k, database in var.databases : k => database }
+  for_each = { for k, database in var.databases : k => database
+    if var.auditing.log_analytics != null
+  }
 
   name                           = lower("ds-${each.key}-${var.resource_suffix}")
   target_resource_id             = azurerm_mssql_database.default[each.key].id
