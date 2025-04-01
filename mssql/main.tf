@@ -113,7 +113,7 @@ resource "azurerm_mssql_database" "default" {
 resource "azurerm_mssql_failover_group" "default" {
   count = var.failover != null ? 1 : 0
 
-  name      = "failover-group"
+  name      = var.failover.name
   databases = [for k, db in var.databases : azurerm_mssql_database.default[k].id if db.active_failover_enabled]
 
   readonly_endpoint_failover_policy_enabled = true

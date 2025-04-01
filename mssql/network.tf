@@ -51,21 +51,25 @@ resource "azurerm_mssql_outbound_firewall_rule" "failover" {
 }
 
 
+locals {
+  subresource_name = "sqlServer"
+}
+
 resource "azurerm_private_endpoint" "private_endpoint" {
   for_each = { for k, v in var.private_endpoints : k => v }
 
   location                      = coalesce(each.value.location, var.location)
-  name                          = coalesce(each.value.name, "pep-${each.value.subresource_name}-${each.value.is_failover ? local.failover_name : local.name}")
+  name                          = coalesce(each.value.name, "pep-${local.subresource_name}-${each.value.is_failover ? local.failover_name : local.name}")
   resource_group_name           = coalesce(each.value.resource_group_name, var.resource_group_name)
   subnet_id                     = each.value.subnet_resource_id
-  custom_network_interface_name = coalesce(each.value.network_interface_name, "nic-${each.value.subresource_name}-${each.value.is_failover ? local.failover_name : local.name}")
+  custom_network_interface_name = coalesce(each.value.network_interface_name, "nic-${local.subresource_name}-${each.value.is_failover ? local.failover_name : local.name}")
   tags                          = each.value.tags
 
   private_service_connection {
     is_manual_connection           = false
-    name                           = coalesce(each.value.private_service_connection_name, "pse-${each.value.subresource_name}-${each.value.is_failover ? local.failover_name : local.name}")
+    name                           = coalesce(each.value.private_service_connection_name, "pse-${local.subresource_name}-${each.value.is_failover ? local.failover_name : local.name}")
     private_connection_resource_id = azurerm_mssql_server.default[each.value.is_failover ? local.failover_name : local.name].id
-    subresource_names              = [each.value.subresource_name]
+    subresource_names              = [local.subresource_name]
   }
   dynamic "ip_configuration" {
     for_each = each.value.ip_configurations
@@ -73,7 +77,7 @@ resource "azurerm_private_endpoint" "private_endpoint" {
     content {
       name               = ip_configuration.value.name
       private_ip_address = ip_configuration.value.private_ip_address
-      member_name        = each.value.subresource_name
+      member_name        = local.subresource_name
       subresource_name   = ip_configuration.value.subresource_name
     }
   }

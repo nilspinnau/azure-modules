@@ -143,6 +143,7 @@ variable "outbound_firewall_rules" {
 
 variable "failover" {
   type = object({
+    name                = string
     location            = string
     resource_group_name = optional(string, null)
   })
@@ -156,7 +157,6 @@ variable "private_endpoints" {
     name                                    = optional(string, null)
     tags                                    = optional(map(string), null)
     subnet_resource_id                      = string
-    subresource_name                        = string
     private_dns_zone_group_name             = optional(string, "default")
     private_dns_zone_resource_ids           = optional(set(string), [])
     application_security_group_associations = optional(map(string), {})
