@@ -123,7 +123,6 @@ resource "azurerm_mssql_failover_group" "default" {
   server_id = azurerm_mssql_server.default[local.name].id
 
   read_write_endpoint_failover_policy {
-    mode          = "Manual"
-    grace_minutes = 60
+    mode = "Manual"
   }
 }

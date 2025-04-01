@@ -155,13 +155,13 @@ resource "azurerm_mssql_database_extended_auditing_policy" "example" {
 
 
 data "azurerm_monitor_diagnostic_categories" "mssql_db_diag" {
-  for_each = { for database in var.databases : database.name => database }
+  for_each = { for k, database in var.databases : k => database }
 
   resource_id = azurerm_mssql_database.default[each.value.name].id
 }
 
 resource "azurerm_monitor_diagnostic_setting" "diagnostic_settings_db" {
-  for_each = { for database in var.databases : database.name => database }
+  for_each = { for k, database in var.databases : k => database }
 
   name                           = lower("ds-${each.value.name}-${var.resource_suffix}")
   target_resource_id             = azurerm_mssql_database.default[each.value.name].id
