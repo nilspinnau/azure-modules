@@ -4,7 +4,6 @@ output "app_service_plan" {
     id                  = azurerm_service_plan.default.id
     location            = azurerm_service_plan.default.location
     resource_group_name = azurerm_service_plan.default.resource_group_name
-
   }
 }
 

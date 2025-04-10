@@ -12,6 +12,6 @@ resource "azurerm_service_plan" "default" {
 
   zone_balancing_enabled          = var.zone_redundant
   per_site_scaling_enabled        = true
-  premium_plan_auto_scale_enabled = true
+  premium_plan_auto_scale_enabled = var.premium_plan_auto_scale_enabled
 }
 

@@ -11,7 +11,6 @@ resource "azurerm_app_service_environment_v3" "default" {
   allow_new_private_endpoint_connections = true
   remote_debugging_enabled               = true
 
-
   dynamic "cluster_setting" {
     for_each = var.service_plan.environment.cluster_settings
     content {

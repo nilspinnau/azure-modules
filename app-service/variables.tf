@@ -46,3 +46,8 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
+
+variable "premium_plan_auto_scale_enabled" {
+  type    = bool
+  default = false
+}
