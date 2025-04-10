@@ -134,14 +134,12 @@ variable "public_access" {
   type = object({
     enabled = optional(bool, true)
     network_rules = optional(object({
-      bypass     = optional(list(string), [])
-      ip_rules   = optional(list(string), [])
-      subnet_ids = optional(list(string), [])
+      bypass     = optional(set(string), [])
+      ip_rules   = optional(set(string), [])
+      subnet_ids = optional(set(string), [])
     }), null)
   })
-  default = {
-    enabled = true
-  }
+  default = {}
 }
 
 variable "private_endpoints" {
@@ -192,17 +190,16 @@ variable "private_endpoints_manage_dns_zone_group" {
 
 variable "containers_list" {
   description = "List of containers to create and their access levels."
-  type        = list(string)
+  type        = set(string)
   default     = []
 }
 
 variable "file_shares" {
-  description = "List of containers to create and their access levels."
-  type = list(object({
-    name  = string
+  description = "Map of fileshares to create and their access levels."
+  type = map(object({
     quota = number
   }))
-  default = []
+  default = {}
 }
 
 variable "queues" {
@@ -238,26 +235,21 @@ variable "enable_sas_key" {
 
 variable "data_lake_gen_2" {
   type = object({
-    enabled = optional(bool, false)
-    config = optional(object({
-      nfsv3_enabled = optional(bool, false)
-      sftp_enabled  = optional(bool, false)
-    }))
+    enabled       = optional(bool, false)
+    nfsv3_enabled = optional(bool, false)
+    sftp_enabled  = optional(bool, false)
   })
+  default = {}
 }
 
 
 variable "monitoring" {
   type = object({
     enabled = optional(bool, false)
-    config = optional(object({
-      workspace = object({
-        workspace_id = string
-        resource_id  = string
-      })
+    workspace = optional(object({
+      workspace_id = string
+      resource_id  = string
     }))
   })
-  default = {
-    enabled = false
-  }
+  default = {}
 }

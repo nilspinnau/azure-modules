@@ -46,9 +46,9 @@ resource "azurerm_storage_account" "default" {
 
   # we have soft delete enabled thus this cannot be enabled
   is_hns_enabled = var.data_lake_gen_2.enabled
-  sftp_enabled   = var.data_lake_gen_2.enabled ? var.data_lake_gen_2.config.sftp_enabled : false
+  sftp_enabled   = var.data_lake_gen_2.enabled ? var.data_lake_gen_2.sftp_enabled : false
 
-  nfsv3_enabled = false
+  nfsv3_enabled = var.data_lake_gen_2.enabled ? var.data_lake_gen_2.nfsv3_enabled : false
 
 
   https_traffic_only_enabled = true
@@ -144,11 +144,11 @@ locals {
 
 resource "azapi_resource" "fileshares" {
   for_each = {
-    for fileshare in local.file_share_quota_fixed : fileshare.name => fileshare
+    for k, fileshare in local.file_share_quota_fixed : k => fileshare
     if var.account_kind != "BlobStorage" && var.account_kind != "BlockBlobStorage"
   }
 
-  name      = lower(each.value.name)
+  name      = lower(each.key)
   parent_id = "${azurerm_storage_account.default.id}/fileServices/default"
   type      = "Microsoft.Storage/storageAccounts/fileServices/shares@2022-09-01"
   body = {
