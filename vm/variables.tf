@@ -225,16 +225,11 @@ variable "automatic_updates_enabled" {
 
 variable "machine_configurations" {
   type = map(object({
-    configuration = object({
-      assignment_type = optional(string, "Audit")
-      version         = optional(string, "1.*")
-      content_hash    = optional(string, "")
-      content_uri     = optional(string, "")
-      parameters = optional(list(object({
-        name  = string
-        value = string
-      })), [])
-    })
+    assignment_type = optional(string, "Audit")
+    version         = optional(string, "1.*")
+    content_hash    = optional(string, "")
+    content_uri     = optional(string, "")
+    parameters      = optional(map(string), {})
   }))
   default = {}
 }

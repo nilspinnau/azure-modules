@@ -7,21 +7,21 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "default" {
   }
 
 
-  name               = each.value.name
+  name               = each.key
   location           = var.location
   virtual_machine_id = local.vm.id
   configuration {
-    assignment_type = each.value.configuration.assignment_type
-    version         = each.value.configuration.version
+    assignment_type = each.value.assignment_type
+    version         = each.value.version
 
-    content_hash = each.value.configuration.content_hash
-    content_uri  = each.value.configuration.content_uri
+    content_hash = each.value.content_hash
+    content_uri  = each.value.content_uri
 
     dynamic "parameter" {
-      for_each = each.value.configuration.parameters
+      for_each = each.value.parameters
       content {
-        name  = parameter.value.name
-        value = parameter.value.value
+        name  = parameter.key
+        value = parameter.value
       }
     }
   }
