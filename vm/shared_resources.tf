@@ -184,35 +184,13 @@ resource "time_sleep" "configuration_apply" {
 
 
 # PATCHING
-resource "azapi_resource" "update_attach" {
-  count = var.patching.patch_schedule.schedule_name != "" ? 1 : 0
+resource "azurerm_maintenance_assignment_virtual_machine" "default" {
+  count = var.patching.enabled && var.patching.schedule_id != null ? 1 : 0
 
-  # https://learn.microsoft.com/de-de/azure/templates/microsoft.maintenance/configurationassignments?pivots=deployment-language-terraform
-  type      = "Microsoft.Maintenance/configurationAssignments@2023-04-01"
-  name      = "default"
-  parent_id = local.vm.id
-  location  = var.location
+  location = var.location
 
-  body = jsonencode({
-    properties = {
-      filter = {
-        locations = [
-          var.location
-        ]
-        osTypes = [
-          local.is_windows ? "Windows" : "Linux"
-        ]
-        resourceTypes = [
-          "microsoft.compute/virtualmachines",
-          "microsoft.hybridcompute/machines"
-        ]
-        resourceGroups = [
-          var.resource_group_name
-        ]
-      }
-      maintenanceConfigurationId = var.patching.patch_schedule.schedule_id
-    }
-  })
+  maintenance_configuration_id = var.patching.schedule_id
+  virtual_machine_id           = local.is_windows ? azurerm_windows_virtual_machine.win_vm[0].id : azurerm_linux_virtual_machine.linux_vm[0].id
 
   depends_on = [
     azurerm_windows_virtual_machine.win_vm,
