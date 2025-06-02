@@ -31,8 +31,6 @@ resource "azurerm_windows_virtual_machine" "win_vm" {
   patch_mode            = var.patching.enabled == true ? var.patching.patch_mode : null
   patch_assessment_mode = var.patching.enabled == true ? var.patching.patch_assessment_mode : null
 
-  bypass_platform_safety_checks_on_user_schedule_enabled = var.patching.patch_schedule.schedule_name != ""
-
   size                  = var.sku
   network_interface_ids = local.network_interface_ids
 
