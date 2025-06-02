@@ -30,7 +30,7 @@ resource "azurerm_network_security_group" "default" {
 
       source_address_prefixes      = security_rule.value.source_address_prefix != null ? security_rule.value.source_address_prefixes : null
       source_address_prefix        = security_rule.value.source_address_prefix
-      destination_address_prefixes = security_rule.value.destination_address_prefix != null ? security_rule.value.destination_address_prefixes : security_rule.value.destination_address_prefix
+      destination_address_prefixes = security_rule.value.destination_address_prefix != null ? security_rule.value.destination_address_prefixes : null
       destination_address_prefix   = security_rule.value.destination_address_prefix
     }
   }
