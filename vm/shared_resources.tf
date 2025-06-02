@@ -224,6 +224,6 @@ resource "azapi_resource" "update_attach" {
 resource "azurerm_virtual_machine_gallery_application_assignment" "default" {
   for_each = var.gallery_applications
 
-  gallery_application_version_id = each.value.gallery_application_id
+  gallery_application_version_id = each.value.id
   virtual_machine_id             = local.is_windows ? azurerm_windows_virtual_machine.win_vm[0].id : azurerm_linux_virtual_machine.linux_vm[0].id
 }
