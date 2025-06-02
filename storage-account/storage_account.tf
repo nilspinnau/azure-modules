@@ -129,8 +129,6 @@ resource "azapi_resource" "containers" {
     }
   }
 
-  tags = var.tags
-
   depends_on = [azurerm_storage_account.default]
 }
 
@@ -158,8 +156,6 @@ resource "azapi_resource" "fileshares" {
     }
   }
 
-  tags = var.tags
-
   depends_on = [azurerm_storage_account.default]
 }
 
@@ -170,8 +166,6 @@ resource "azapi_resource" "tables" {
   parent_id = "${azurerm_storage_account.default.id}/tableServices/default"
   type      = "Microsoft.Storage/storageAccounts/tableServices/tables@2022-09-01"
   body      = {}
-
-  tags = var.tags
 
   depends_on = [azurerm_storage_account.default]
 }
@@ -187,8 +181,6 @@ resource "azapi_resource" "queues" {
       metadata = {}
     }
   }
-
-  tags = var.tags
 
   depends_on = [azurerm_storage_account.default]
 }
@@ -245,8 +237,6 @@ resource "azapi_resource" "lifecycle_policy" {
       }
     }
   }
-
-  tags = var.tags
 
   depends_on = [azurerm_storage_account.default]
 }
