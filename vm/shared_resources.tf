@@ -185,7 +185,7 @@ resource "time_sleep" "configuration_apply" {
 
 # PATCHING
 resource "azurerm_maintenance_assignment_virtual_machine" "default" {
-  count = var.patching.enabled && var.patching.schedule != null ? 1 : 0
+  count = var.patching.enabled && var.patching.schedule != null && var.patching.schedule.is_dynamic_scope != false ? 1 : 0
 
   location = var.location
 

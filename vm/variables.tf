@@ -256,8 +256,9 @@ variable "patching" {
     patch_mode            = optional(string, "AutomaticByPlatform")
     patch_assessment_mode = optional(string, "AutomaticByPlatform")
     schedule = optional(object({
-      name = optional(string, "")
-      id   = string
+      name             = optional(string, "")
+      id               = string
+      is_dynamic_scope = optional(bool, false)
     }), null)
   })
   default = {
