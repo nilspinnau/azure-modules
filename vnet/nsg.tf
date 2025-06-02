@@ -25,10 +25,13 @@ resource "azurerm_network_security_group" "default" {
       protocol  = title(lower(security_rule.value.protocol))
 
       source_port_range       = "*" # try(security_rule.value.source_port, "*")
-      destination_port_ranges = security_rule.value.destination_port_ranges
+      destination_port_ranges = security_rule.value.destination_port_range != null ? security_rule.value.destination_port_ranges : null
+      destination_port_range  = security_rule.value.destination_port_range
 
-      source_address_prefixes      = security_rule.value.source_address_prefixes
-      destination_address_prefixes = security_rule.value.destination_address_prefixes
+      source_address_prefixes      = security_rule.value.source_address_prefix != null ? security_rule.value.source_address_prefixes : null
+      source_address_prefix        = security_rule.value.source_address_prefix
+      destination_address_prefixes = security_rule.value.destination_address_prefix != null ? security_rule.value.destination_address_prefixes : security_rule.value.destination_address_prefix
+      destination_address_prefix   = security_rule.value.destination_address_prefix
     }
   }
 }
