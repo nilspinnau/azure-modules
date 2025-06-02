@@ -158,8 +158,13 @@ variable "zone" {
 }
 
 variable "gallery_applications" {
-  type    = set(string)
-  default = []
+  type = map(object({
+    id                     = optional(string, "")
+    location               = optional(string, "")
+    name                   = optional(string, "")
+    gallery_application_id = string
+  }))
+  default = {}
 }
 
 variable "extensions" {
