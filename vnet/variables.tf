@@ -64,7 +64,7 @@ variable "subnets" {
       direction                    = string
       access                       = string
       protocol                     = string
-      destination_port_ranges      = set(string)
+      destination_port_ranges      = optional(set(string), [])
       destination_port_range       = optional(string, null)
       source_address_prefixes      = optional(set(string), [])
       source_address_prefix        = optional(string, null)
