@@ -15,13 +15,12 @@ locals {
       name                       = "DependencyAgent"
       publisher                  = "Microsoft.Azure.Monitoring.DependencyAgent"
       type                       = local.is_windows == true ? "DependencyAgentWindows" : "DependencyAgentLinux"
-      version                    = "9.10.18.4770"
+      version                    = "9.10"
       auto_upgrade_minor_version = true
       automatic_upgrade_enabled  = true
       settings = jsonencode({
         enableAMA = true
-        }
-      )
+      })
     },
     {
       name                       = local.is_windows == true ? "ChangeTracking-Windows" : "ChangeTracking-Linux"
@@ -32,8 +31,7 @@ locals {
       automatic_upgrade_enabled  = true
       settings = jsonencode({
         enableAMA = true
-        }
-      )
+      })
     },
     {
       name                       = local.is_windows == true ? "AzureMonitorWindowsAgent" : "AzureMonitorLinuxAgent"
