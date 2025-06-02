@@ -185,11 +185,11 @@ resource "time_sleep" "configuration_apply" {
 
 # PATCHING
 resource "azurerm_maintenance_assignment_virtual_machine" "default" {
-  count = var.patching.enabled && var.patching.schedule_id != null ? 1 : 0
+  count = var.patching.enabled && var.patching.schedule != null ? 1 : 0
 
   location = var.location
 
-  maintenance_configuration_id = var.patching.schedule_id
+  maintenance_configuration_id = var.patching.schedule.id
   virtual_machine_id           = local.is_windows ? azurerm_windows_virtual_machine.win_vm[0].id : azurerm_linux_virtual_machine.linux_vm[0].id
 
   depends_on = [

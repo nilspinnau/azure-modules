@@ -255,7 +255,10 @@ variable "patching" {
     enabled               = optional(bool, true)
     patch_mode            = optional(string, "AutomaticByPlatform")
     patch_assessment_mode = optional(string, "AutomaticByPlatform")
-    schedule_id           = optional(string, null) # if set, the schedule will be used for patching
+    schedule = optional(object({
+      name = optional(string, "")
+      id   = string
+    }), null)
   })
   default = {
     enabled = false
