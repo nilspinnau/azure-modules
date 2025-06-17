@@ -204,13 +204,13 @@ variable "file_shares" {
 
 variable "queues" {
   description = "List of storages queues"
-  type        = list(string)
+  type        = set(string)
   default     = []
 }
 
 variable "tables" {
   description = "List of storage tables."
-  type        = list(string)
+  type        = set(string)
   default     = []
 }
 

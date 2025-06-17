@@ -133,16 +133,9 @@ resource "azapi_resource" "containers" {
 }
 
 
-locals {
-  # quota of fileshare has to be in range between 100 - 102400
-  file_shares_quota_min_fixed = [for fileshare in var.file_shares : fileshare.quota < 100 ? { name : fileshare.name, quota : 100 } : { name : fileshare.name, quota : fileshare.quota }]
-  file_share_quota_max_fixed  = [for fileshare in local.file_shares_quota_min_fixed : fileshare.quota > 102400 ? { name : fileshare.name, quota : 102400 } : { name : fileshare.name, quota : fileshare.quota }]
-  file_share_quota_fixed      = local.file_share_quota_max_fixed
-}
-
 resource "azapi_resource" "fileshares" {
   for_each = {
-    for k, fileshare in local.file_share_quota_fixed : k => fileshare
+    for k, fileshare in var.file_shares : k => fileshare
     if var.account_kind != "BlobStorage" && var.account_kind != "BlockBlobStorage"
   }
 
@@ -152,7 +145,7 @@ resource "azapi_resource" "fileshares" {
   body = {
     properties = {
       metadata   = {}
-      shareQuota = each.value.quota < 100 ? 100 : each.value.quota
+      shareQuota = each.value.quota < 100 ? 100 : (each.value.quota > 102400 ? 102400 : each.value.quota)
     }
   }
 
