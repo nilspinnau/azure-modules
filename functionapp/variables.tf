@@ -77,4 +77,5 @@ variable "functions" {
     config_json = optional(string, null)
     enabled     = optional(bool, true)
   }))
+  default = {}
 }
