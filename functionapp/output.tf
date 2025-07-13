@@ -19,3 +19,8 @@ output "location" {
 output "resource_group_name" {
   value = local.function_app.resource_group_name
 }
+
+
+output "identity" {
+  value = local.function_app.identity
+}
