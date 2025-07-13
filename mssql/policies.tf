@@ -72,7 +72,8 @@ resource "azurerm_mssql_server_security_alert_policy" "default" {
   server_name         = azurerm_mssql_server.default[each.key].name
   state               = var.auditing.security_alert_policy_enabled ? "Enabled" : "Disabled"
 
-  storage_endpoint = var.auditing.storage_account.primary_blob_endpoint
+  storage_endpoint           = var.auditing.storage_account.primary_blob_endpoint
+  storage_account_access_key = var.auditing.storage_account.access_key
 
   retention_days = var.auditing.log_retention_days
 
