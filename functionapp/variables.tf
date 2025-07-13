@@ -36,7 +36,7 @@ variable "subnet_id" {
 variable "site_config" {
   type = object({
     always_on          = optional(bool, true)
-    ftps_state         = optional(string, "FtpsOnly")
+    ftps_state         = optional(string, "AllAllowed")
     min_tls_version    = optional(string, "1.2")
     http2_enabled      = optional(bool, true)
     linux_fx_version   = optional(string, null)
