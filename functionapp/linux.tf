@@ -44,4 +44,3 @@ resource "azurerm_linux_function_app" "default" {
 
   virtual_network_subnet_id = var.subnet_id
 }
-

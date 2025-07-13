@@ -11,5 +11,5 @@ resource "random_string" "default" {
   upper   = false
   numeric = false
   lower   = true
-  length  = 16 - length(var.resource_suffix)
+  length  = 32 - length(var.resource_suffix) - 5
 }
