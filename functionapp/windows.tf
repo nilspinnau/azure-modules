@@ -36,6 +36,8 @@ resource "azurerm_windows_function_app" "default" {
     application_insights_key               = azurerm_application_insights.default.instrumentation_key
   }
 
+  zip_deploy_file = var.zip_deploy_file
+
   storage_account_name = var.storage_account.name
 
   virtual_network_subnet_id = var.subnet_id

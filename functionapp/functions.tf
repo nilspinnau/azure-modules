@@ -2,7 +2,10 @@
 
 
 resource "azurerm_function_app_function" "default" {
-  for_each = var.functions
+  for_each = {
+    for k, v in var.functions : k => v
+    if var.zip_deploy_file != null
+  }
 
   name            = each.key
   function_app_id = local.function_app.id
