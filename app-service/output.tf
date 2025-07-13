@@ -1,4 +1,4 @@
-output "app_service_plan" {
+output "service_plan" {
   value = {
     name                = azurerm_service_plan.default.name
     id                  = azurerm_service_plan.default.id
