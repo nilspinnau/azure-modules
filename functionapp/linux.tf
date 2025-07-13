@@ -26,6 +26,7 @@ resource "azurerm_linux_function_app" "default" {
     always_on           = var.site_config.always_on
     ftps_state          = var.site_config.ftps_state
     scm_type            = "None"
+    use_32_bit_worker   = false
     minimum_tls_version = var.site_config.min_tls_version
     linux_fx_version    = var.site_config.linux_fx_version
     http2_enabled       = var.site_config.http2_enabled
@@ -37,7 +38,6 @@ resource "azurerm_linux_function_app" "default" {
       python_version          = var.site_config.application_stack.python_version
       java_version            = var.site_config.application_stack.java_version
     }
-    use_32_bit_worker                       = false
     container_registry_use_managed_identity = true
     application_insights_connection_string  = azurerm_application_insights.default.connection_string
     application_insights_key                = azurerm_application_insights.default.instrumentation_key
