@@ -15,9 +15,10 @@ resource "azurerm_linux_function_app" "default" {
   storage_uses_managed_identity = true
   app_settings                  = var.app_settings
 
-  https_only                                     = true
-  public_network_access_enabled                  = true
-  enabled                                        = true
+  https_only                    = true
+  public_network_access_enabled = true
+  enabled                       = true
+
   webdeploy_publish_basic_authentication_enabled = true
   ftp_publish_basic_authentication_enabled       = true
 

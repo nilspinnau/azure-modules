@@ -19,6 +19,9 @@ resource "azurerm_windows_function_app" "default" {
   public_network_access_enabled = true
   enabled                       = true
 
+  ftp_publish_basic_authentication_enabled       = true
+  webdeploy_publish_basic_authentication_enabled = true
+
   site_config {
     always_on           = var.site_config.always_on
     ftps_state          = var.site_config.ftps_state
