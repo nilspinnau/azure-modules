@@ -50,6 +50,7 @@ variable "site_config" {
       java_version            = optional(string, null)
     }), {})
   })
+  default = {}
 }
 
 variable "app_settings" {
