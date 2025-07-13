@@ -69,10 +69,10 @@ variable "storage_account" {
 variable "functions" {
   type = map(object({
     name = string
-    files = map(object({
+    files = optional(map(object({
       content = optional(string, "")
       path    = optional(string, "")
-    }))
+    })), {})
     language    = optional(string, "PowerShell")
     config_json = optional(string, null)
     enabled     = optional(bool, true)

@@ -7,8 +7,7 @@ resource "azurerm_monitor_diagnostic_setting" "default" {
   log_analytics_destination_type = "Dedicated"
   log_analytics_workspace_id     = var.monitoring.workspace.resource_id
 
-  metric {
+  enabled_metric {
     category = "Availability"
-    enabled  = true
   }
 }
