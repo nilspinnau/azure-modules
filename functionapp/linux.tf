@@ -19,13 +19,12 @@ resource "azurerm_linux_function_app" "default" {
   public_network_access_enabled = true
   enabled                       = true
 
-  webdeploy_publish_basic_authentication_enabled = true
+  webdeploy_publish_basic_authentication_enabled = false
   ftp_publish_basic_authentication_enabled       = true
 
   site_config {
     always_on           = var.site_config.always_on
     ftps_state          = var.site_config.ftps_state
-    scm_type            = "None"
     use_32_bit_worker   = false
     minimum_tls_version = var.site_config.min_tls_version
     linux_fx_version    = var.site_config.linux_fx_version
