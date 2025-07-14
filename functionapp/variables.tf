@@ -61,8 +61,9 @@ variable "app_settings" {
 
 variable "storage_account" {
   type = object({
-    name = string
-    id   = string
+    name       = string
+    id         = string
+    access_key = optional(string, null)
   })
 }
 
