@@ -12,7 +12,7 @@ resource "azurerm_linux_function_app" "default" {
     type = "SystemAssigned"
   }
 
-  storage_uses_managed_identity = var.storage_account.access_key != null
+  storage_uses_managed_identity = var.storage_account.access_key == null
   app_settings                  = var.app_settings
 
   https_only                    = true
