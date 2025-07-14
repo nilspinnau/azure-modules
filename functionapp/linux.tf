@@ -12,7 +12,7 @@ resource "azurerm_linux_function_app" "default" {
     type = "SystemAssigned"
   }
 
-  storage_uses_managed_identity = var.storage_account.access_key == null
+  storage_uses_managed_identity = true
   app_settings                  = var.app_settings
 
   https_only                    = true
@@ -45,7 +45,6 @@ resource "azurerm_linux_function_app" "default" {
   zip_deploy_file = var.zip_deploy_file
 
   storage_account_name       = var.storage_account.name
-  storage_account_access_key = var.storage_account.access_key
 
   virtual_network_subnet_id = var.subnet_id
 }
