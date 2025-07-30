@@ -125,14 +125,13 @@ resource "azurerm_monitor_diagnostic_setting" "extaudit" {
     }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 
   lifecycle {
     ignore_changes = [
-      metric,
+      enabled_metric,
       enabled_log
     ]
   }
