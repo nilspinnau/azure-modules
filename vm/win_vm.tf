@@ -13,10 +13,8 @@ resource "azurerm_windows_virtual_machine" "win_vm" {
 
   zone = var.zone
 
-  allow_extension_operations        = true
-  encryption_at_host_enabled        = (var.disk_encryption.type == "host" || var.disk_encryption.type == "des+")
-  vm_agent_platform_updates_enabled = true
-
+  allow_extension_operations = true
+  encryption_at_host_enabled = (var.disk_encryption.type == "host" || var.disk_encryption.type == "des+")
 
   hotpatching_enabled      = var.hotpatching_enabled
   enable_automatic_updates = var.automatic_updates_enabled

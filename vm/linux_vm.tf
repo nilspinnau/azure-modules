@@ -15,9 +15,8 @@ resource "azurerm_linux_virtual_machine" "linux_vm" {
 
   zone = var.zone
 
-  allow_extension_operations        = true
-  encryption_at_host_enabled        = (var.disk_encryption.type == "host" || var.disk_encryption.type == "des+")
-  vm_agent_platform_updates_enabled = true
+  allow_extension_operations = true
+  encryption_at_host_enabled = (var.disk_encryption.type == "host" || var.disk_encryption.type == "des+")
 
   vtpm_enabled        = var.vtpm_enabled
   secure_boot_enabled = var.secure_boot_enabled
