@@ -100,12 +100,6 @@ variable "storage_account" {
   })
 }
 
-variable "zip_deploy_file" {
-  type        = string
-  description = "Path to the zip file to deploy to the Function App."
-  default     = null
-}
-
 variable "functions" {
   type = map(object({
     name = string

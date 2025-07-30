@@ -50,8 +50,6 @@ resource "azurerm_linux_function_app" "default" {
     login {}
   }
 
-  zip_deploy_file = var.zip_deploy_file
-
   storage_account_name = var.storage_account.name
 
   virtual_network_subnet_id = var.subnet_id
