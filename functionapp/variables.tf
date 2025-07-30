@@ -51,6 +51,8 @@ variable "auth_settings_v2" {
     }), {})
     microsoft = optional(object({
     }), {})
+    facebook = optional(object({
+    }), {})
   })
   default = {}
 }

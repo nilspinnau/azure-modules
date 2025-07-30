@@ -42,12 +42,51 @@ resource "azurerm_linux_function_app" "default" {
     application_insights_key                = azurerm_application_insights.default.instrumentation_key
   }
 
-  auth_settings_v2 {
-    auth_enabled           = var.auth_settings_v2.auth_enabled
-    require_authentication = var.auth_settings_v2.require_authentication
-    require_https          = var.auth_settings_v2.require_https
+  dynamic "auth_settings_v2" {
+    for_each = var.auth_settings_v2.auth_enabled == true ? [var.auth_settings_v2] : []
+    content {
+      auth_enabled           = var.auth_settings_v2.auth_enabled
+      require_authentication = var.auth_settings_v2.require_authentication
+      require_https          = var.auth_settings_v2.require_https
 
-    login {}
+      login {}
+
+      dynamic "active_directory_v2" {
+        for_each = var.auth_settings_v2.active_directory != {} ? [var.auth_settings_v2.active_directory] : []
+        content {
+          # Add any specific settings for active directory here if needed
+          client_id            = active_directory_v2.value.client_id
+          tenant_auth_endpoint = active_directory_v2.value.tenant_auth_endpoint
+        }
+      }
+
+      dynamic "google_v2" {
+        for_each = var.auth_settings_v2.google != {} ? [var.auth_settings_v2.google] : []
+        content {
+          # Add any specific settings for Google authentication here if needed
+          client_id                  = google_v2.value.client_id
+          client_secret_setting_name = google_v2.value.client_secret_setting_name
+        }
+      }
+
+      dynamic "microsoft_v2" {
+        for_each = var.auth_settings_v2.microsoft != {} ? [var.auth_settings_v2.microsoft] : []
+        content {
+          # Add any specific settings for Microsoft authentication here if needed
+          client_id                  = microsoft_v2.value.client_id
+          client_secret_setting_name = microsoft_v2.value.client_secret_setting_name
+        }
+      }
+
+      dynamic "facebook_v2" {
+        for_each = var.auth_settings_v2.facebook != {} ? [var.auth_settings_v2.facebook] : []
+        content {
+          # Add any specific settings for Facebook authentication here if needed
+          app_id                  = facebook_v2.value.app_id
+          app_secret_setting_name = facebook_v2.value.app_secret_setting_name
+        }
+      }
+    }
   }
 
   storage_account_name = var.storage_account.name
